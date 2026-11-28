@@ -20,6 +20,15 @@ def field(profile):
     )
 
 
+def spectral(profile):
+    """A spectral field of a profile, the same at all frequencies"""
+    return A.SpectralGeodeticField4(
+        data=np.asarray(profile)[None, :, None, None],
+        grids=[[35e9], *grids],
+        grid_names=["frequency", *names],
+    )
+
+
 ws.atm_field.top_of_atmosphere = altitude[-1]
 ws.atm_field["t"] = field(260.0 + 20.0 * (1.0 - altitude / altitude[-1]))
 ws.atm_field["p"] = field(1e5 * np.exp(-altitude / 7e3))
@@ -34,21 +43,19 @@ ws.ray_path_observer_agendaSetGeometric(
     max_step_option="step", add_crossings=1, remove_non_atm=1
 )
 
-extinction = A.ScatteringSpeciesProperty(
-    "generated-cloud", A.ParticulateProperty.Extinction
-)
-ssa = A.ScatteringSpeciesProperty(
-    "generated-cloud", A.ParticulateProperty.SingleScatteringAlbedo
-)
+extinction = "generated-cloud extinction"
 
 # HG is evaluated through its laboratory-frame (ARO) bulk properties by the
 # radar model.  The varying profile gives both local backscatter and two-way
 # particulate attenuation something nontrivial to retrieve.
 truth = 2.5e-5 + 1.2e-5 * np.sin(np.pi * altitude / altitude[-1]) ** 2
 truth[[0, -1]] = 0.0
-ws.atm_field[extinction] = field(truth)
-ws.atm_field[ssa] = field(np.full(altitude.size, 0.82))
-ws.scat_species = [A.HenyeyGreensteinScatterer(extinction, ssa, 0.15)]
+ws.atm_spectral_field[extinction] = spectral(truth)
+ws.atm_spectral_field["generated-cloud ssa"] = spectral(np.full(altitude.size, 0.82))
+ws.atm_spectral_field["generated-cloud g"] = 0.15
+ws.atm_scat_species = [
+    A.HenyeyGreensteinScatterer(extinction, "generated-cloud ssa", "generated-cloud g")
+]
 
 ws.freq_grid = [35e9]
 ws.measurement_sensorsInit()
@@ -76,9 +83,9 @@ assert np.all(np.isfinite(observed)) and np.all(observed > 0.0)
 # outside the range gates and remain an ordinary part of the state vector.
 initial = np.full(altitude.size, 1.0e-5)
 initial[[0, -1]] = 0.0
-ws.atm_field[extinction] = field(initial)
+ws.atm_spectral_field[extinction] = spectral(initial)
 ws.jac_targetsInit()
-ws.jac_targetsAddAtmosphere(target=extinction, d=1e-7)
+ws.jac_targetsAddAtmosphereSpectral(target=extinction, d=1e-7)
 ws.jac_targetsFinalize()
 ws.measurement_vec = observed
 
@@ -95,7 +102,7 @@ ws.model_state_vecFromRadarOnionPeeling(
 fit = np.asarray(ws.measurement_vec_fit)
 state = np.asarray(ws.model_state_vec)
 jac = np.asarray(ws.measurement_jac)
-retrieved = np.asarray(ws.atm_field[extinction].data.data).ravel()
+retrieved = np.asarray(ws.atm_spectral_field[extinction].data.data).ravel()
 
 assert state.shape == truth.shape
 assert jac.shape == (observed.size, truth.size)
@@ -107,8 +114,8 @@ assert np.allclose(fit, observed, rtol=3e-4, atol=1e-13)
 # The returned state is not an onion-specific object: applying it through the
 # standard model-state method reproduces the returned field and radar fit.
 saved = retrieved.copy()
-ws.atm_field[extinction] = field(initial)
-ws.atm_fieldFromModelState(model_state_targets=ws.jac_targets)
-assert np.allclose(np.asarray(ws.atm_field[extinction].data.data).ravel(), saved)
+ws.atm_spectral_field[extinction] = spectral(initial)
+ws.atm_spectral_fieldFromModelState(model_state_targets=ws.jac_targets)
+assert np.allclose(np.asarray(ws.atm_spectral_field[extinction].data.data).ravel(), saved)
 ws.measurement_vecFromRadarSingleScattering(**forward)
 assert np.allclose(np.asarray(ws.measurement_vec), fit, rtol=2e-12, atol=1e-15)

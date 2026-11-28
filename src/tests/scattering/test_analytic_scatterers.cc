@@ -54,14 +54,19 @@ std::shared_ptr<ZenithAngleGrid> za_scat_grid() {
   return std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(za_scat));
 }
 
-/** Every frequency of a multi-frequency TRO request is scaled by its own scattering coefficient */
+/** Every frequency of a multi-frequency TRO request has its own scattering coefficient and asymmetry parameter */
 bool test_henyey_greenstein_frequencies() {
-  const Numeric                   g = 0.6;
   const Vector                    f_grid{1e9, 2e9, 3e9};
   const auto                      ext = [](Numeric f) { return 1e-3 * f / 1e9; };
   const auto                      ssa = [](Numeric f) { return 0.5 + 0.1 * f / 1e9; };
-  const HenyeyGreensteinScatterer hg{
-      ExtSSACallback{[&](Numeric f, const AtmPoint&) { return std::pair{ext(f), ssa(f)}; }}, g};
+  const auto                      g   = [](Numeric f) { return 0.8 - 0.2 * f / 1e9; };
+  const HenyeyGreensteinScatterer hg{"extinction", "ssa", "g"};
+  Vector                          ext_grid(f_grid.size()), ssa_grid(f_grid.size()), g_grid(f_grid.size());
+  for (Size iv = 0; iv < f_grid.size(); iv++) {
+    ext_grid[iv] = ext(f_grid[iv]);
+    ssa_grid[iv] = ssa(f_grid[iv]);
+    g_grid[iv]   = g(f_grid[iv]);
+  }
 
   // Gauss-Legendre scattering angles, ascending
   const Index n = 100;
@@ -69,8 +74,8 @@ bool test_henyey_greenstein_frequencies() {
   Legendre::GaussLegendre(x, w);
   for (Index i = 0; i < n; i++) angles[i] = Conversion::acosd(x[n - 1 - i]);
 
-  const auto bulk = hg.get_bulk_scattering_properties_tro_gridded(
-      AtmPoint{}, f_grid, std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(angles)));
+  const auto bulk = hg.tro_gridded(
+      ext_grid, ssa_grid, g_grid, f_grid, std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(angles)));
   const auto& pm = *bulk.phase_matrix;
   for (Index iv = 0; iv < 3; iv++) {
     const Numeric scattering = ext(f_grid[iv]) * ssa(f_grid[iv]);
@@ -80,7 +85,7 @@ bool test_henyey_greenstein_frequencies() {
     Numeric integral = 0.0;
     for (Index i = 0; i < n; i++) {
       const Numeric c = x[n - 1 - i];
-      const Numeric p = scattering * henyey_greenstein(g, c);
+      const Numeric p = scattering * henyey_greenstein(g(f_grid[iv]), c);
       for (auto [is, ref] :
            {std::pair{0, p}, std::pair{2, p}, std::pair{3, p * hg_ratio(c)}, std::pair{5, p * hg_ratio(c)}}) {
         if (not close(pm[0, iv, i].data[is], ref, 1e-12)) {
@@ -127,42 +132,122 @@ bool check_lab_frame(const BulkScatteringProperties<Format::ARO, Representation:
 }
 
 bool test_henyey_greenstein_lab_frame() {
-  const auto hg_ext = ScatteringSpeciesProperty{"hg", ParticulateProperty::Extinction};
-  const auto hg_ssa = ScatteringSpeciesProperty{"hg", ParticulateProperty::SingleScatteringAlbedo};
-  AtmPoint   point;
-  point[hg_ext] = 2e-3;
-  point[hg_ssa] = 0.7;
-
   // Strongly forward peaked, where tabulating Theta is least accurate
   const Numeric                   g = 0.9;
-  const HenyeyGreensteinScatterer hg{hg_ext, hg_ssa, g};
-  const auto                      f = [g](Numeric c) {
+  const HenyeyGreensteinScatterer hg{"extinction", "ssa", "g"};
+  AtmSpectralPoint                spectral;
+  spectral[AtmSpectralPropertyTag{"extinction"}] = Vector{2e-3};
+  spectral[AtmSpectralPropertyTag{"ssa"}]        = Vector{0.7};
+  spectral[AtmSpectralPropertyTag{"g"}]          = Vector{g};
+  const auto f                                   = [g](Numeric c) {
     return std::array{henyey_greenstein(g, c), 0.0, hg_ratio(c) * henyey_greenstein(g, c)};
   };
 
-  const auto bulk = hg.get_bulk_scattering_properties_aro_gridded(point, Vector{1e9}, za_inc, delta_aa, za_scat_grid());
+  const auto bulk = hg.aro_gridded(AtmPoint{}, spectral, Vector{1e9}, za_inc, delta_aa, za_scat_grid());
   if (not check_lab_frame(bulk, 2e-3 * 0.7, f, "HG")) return false;
   for (Size i = 0; i < za_inc.size(); i++) {
     if (not close(bulk.extinction_matrix[0, 0, i].A(), 2e-3, 1e-14)) return false;
     if (not close(bulk.absorption_vector[0, 0, i].I(), 2e-3 * 0.3, 1e-14)) return false;
   }
 
-  const auto d_ext = hg.get_bulk_scattering_properties_aro_gridded_derivative(
-      point, Vector{1e9}, za_inc, delta_aa, za_scat_grid(), AtmKeyVal{hg_ext});
+  const Vector extinction{2e-3}, ssa{0.7}, gs{g}, one{1.0}, zero{0.0};
+  const auto   d_ext =
+      hg.aro_gridded_derivative(extinction, ssa, gs, one, zero, zero, Vector{1e9}, za_inc, delta_aa, za_scat_grid());
   if (not check_lab_frame(d_ext, 0.7, f, "dHG/dextinction")) return false;
 
-  const auto d_ssa = hg.get_bulk_scattering_properties_aro_gridded_derivative(
-      point, Vector{1e9}, za_inc, delta_aa, za_scat_grid(), AtmKeyVal{hg_ssa});
+  const auto d_ssa =
+      hg.aro_gridded_derivative(extinction, ssa, gs, zero, one, zero, Vector{1e9}, za_inc, delta_aa, za_scat_grid());
   return check_lab_frame(d_ssa, 2e-3, f, "dHG/dssa");
+}
+
+/** The derivative by g against central finite differences, and by the spectral properties through the wrappers
+ *
+ * Two frequencies have different g, so the derivative at each frequency must
+ * be by the g of that frequency alone.
+ */
+bool test_henyey_greenstein_g_derivative() {
+  const HenyeyGreensteinScatterer hg{"extinction", "ssa", "g"};
+  const Vector                    f_grid{1e9, 2e9}, extinction{2e-3, 1e-3}, ssa{0.7, 0.4}, g{0.6, -0.3};
+  const Vector                    zero(2, 0.0), one(2, 1.0);
+  constexpr Numeric               h = 1e-6;
+
+  const auto with_g = [&](Numeric dg) {
+    Vector x  = g;
+    x        += dg;
+    return x;
+  };
+
+  // TRO: every element of the phase matrix
+  const auto grid  = [] { return std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(za_scat)); };
+  const auto d_tro = hg.tro_gridded_derivative(extinction, ssa, g, zero, zero, one, f_grid, grid());
+  const auto plus  = hg.tro_gridded(extinction, ssa, with_g(h), f_grid, grid());
+  const auto minus = hg.tro_gridded(extinction, ssa, with_g(-h), f_grid, grid());
+  for (Size iv = 0; iv < f_grid.size(); iv++) {
+    for (Size ia = 0; ia < za_scat.size(); ia++) {
+      for (Index e = 0; e < 6; e++) {
+        const Numeric fd =
+            ((*plus.phase_matrix)[0, iv, ia].data[e] - (*minus.phase_matrix)[0, iv, ia].data[e]) / (2 * h);
+        const Numeric an = (*d_tro.phase_matrix)[0, iv, ia].data[e];
+        if (std::abs(an - fd) > 1e-7 * std::max(1e-6, std::abs(fd))) {
+          std::cout << "TRO dHG/dg at f = " << f_grid[iv] << " Hz, za = " << za_scat[ia] << ", element " << e << ": "
+                    << an << " != " << fd << '\n';
+          return false;
+        }
+      }
+    }
+    if (d_tro.extinction_matrix[0, iv].A() != 0.0 or d_tro.absorption_vector[0, iv].I() != 0.0) return false;
+  }
+
+  // ARO: every element of the laboratory-frame phase matrix
+  const auto d_aro =
+      hg.aro_gridded_derivative(extinction, ssa, g, zero, zero, one, f_grid, za_inc, delta_aa, za_scat_grid());
+  const auto aro_plus  = hg.aro_gridded(extinction, ssa, with_g(h), f_grid, za_inc, delta_aa, za_scat_grid());
+  const auto aro_minus = hg.aro_gridded(extinction, ssa, with_g(-h), f_grid, za_inc, delta_aa, za_scat_grid());
+  Numeric    worst     = 0.0;
+  for (Size iv = 0; iv < f_grid.size(); iv++) {
+    for (Size i = 0; i < za_inc.size(); i++) {
+      for (Size k = 0; k < delta_aa.size(); k++) {
+        for (Size j = 0; j < za_scat.size(); j++) {
+          for (Index e = 0; e < 16; e++) {
+            const Numeric fd =
+                ((*aro_plus.phase_matrix)[0, iv, i, k, j].data[e] - (*aro_minus.phase_matrix)[0, iv, i, k, j].data[e]) /
+                (2 * h);
+            const Numeric an = (*d_aro.phase_matrix)[0, iv, i, k, j].data[e];
+            worst            = std::max(worst, std::abs(an - fd) / std::max(1e-6, std::abs(fd)));
+          }
+        }
+      }
+    }
+  }
+  if (worst > 1e-7) {
+    std::cout << "ARO dHG/dg deviates from finite differences by " << worst << '\n';
+    return false;
+  }
+
+  // The wrappers select the property by its name, and a property the scatterer does not read gives zero
+  AtmSpectralPoint spectral;
+  spectral[AtmSpectralPropertyTag{"extinction"}] = extinction;
+  spectral[AtmSpectralPropertyTag{"ssa"}]        = ssa;
+  spectral[AtmSpectralPropertyTag{"g"}]          = g;
+  const auto by_g                                = hg.aro_gridded_derivative(
+      AtmPoint{}, spectral, f_grid, za_inc, delta_aa, za_scat_grid(), AtmSpectralPropertyTag{"g"});
+  const auto by_other = hg.aro_gridded_derivative(
+      AtmPoint{}, spectral, f_grid, za_inc, delta_aa, za_scat_grid(), AtmSpectralPropertyTag{"refractive index"});
+  for (Size iv = 0; iv < f_grid.size(); iv++) {
+    for (Index e = 0; e < 16; e++) {
+      if ((*by_g.phase_matrix)[0, iv, 1, 1, 1].data[e] != (*d_aro.phase_matrix)[0, iv, 1, 1, 1].data[e]) return false;
+      if ((*by_other.phase_matrix)[0, iv, 1, 1, 1].data[e] != 0.0) return false;
+    }
+  }
+  return true;
 }
 
 /** The spherical-harmonics coefficients sum to the closed form: F11 = F22 = p and F33 = F44 = p f */
 bool test_henyey_greenstein_spectral() {
   const Numeric                   g = 0.5, scattering = 3e-4;
   const Index                     degree = 80;  // g^degree is far below round-off
-  const HenyeyGreensteinScatterer hg{
-      ExtSSACallback{[&](Numeric, const AtmPoint&) { return std::pair{2.0 * scattering, 0.5}; }}, g};
-  const auto  spectral = hg.get_bulk_scattering_properties_tro_spectral(AtmPoint{}, Vector{1e9}, degree);
+  const HenyeyGreensteinScatterer hg{"extinction", "ssa", "g"};
+  const auto  spectral = hg.tro_spectral(Vector{2.0 * scattering}, Vector{0.5}, Vector{g}, Vector{1e9}, degree);
   const auto& pm       = *spectral.phase_matrix;
   for (Numeric c : {-1.0, -0.73, -0.2, 0.0, 0.31, 0.88, 1.0}) {
     std::array<Numeric, 4> sum{};
@@ -197,17 +282,18 @@ bool test_henyey_greenstein_spectral() {
  */
 bool test_henyey_greenstein_backscatter() {
   const Numeric                   g = 0.5;
-  const HenyeyGreensteinScatterer hg{ExtSSACallback{[](Numeric, const AtmPoint&) { return std::pair{1.0, 1.0}; }}, g};
+  const HenyeyGreensteinScatterer hg{"extinction", "ssa", "g"};
   const Numeric                   za_in = 40.0, za_back = 180.0 - za_in;
 
   const auto lab = [&](Numeric delta_aa, Numeric za) {
-    const auto bulk = hg.get_bulk_scattering_properties_aro_gridded(
-        AtmPoint{},
-        Vector{1e9},
-        Vector{za_in},
-        Vector{delta_aa},
-        std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(Vector{za})));
-    Vector z(16);
+    const auto bulk = hg.aro_gridded(Vector{1.0},
+                                     Vector{1.0},
+                                     Vector{g},
+                                     Vector{1e9},
+                                     Vector{za_in},
+                                     Vector{delta_aa},
+                                     std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(Vector{za})));
+    Vector     z(16);
     for (Index e = 0; e < 16; e++) z[e] = (*bulk.phase_matrix)[0, 0, 0, 0, 0].data[e];
     return z;
   };
@@ -233,13 +319,12 @@ bool test_rayleigh_lab_frame() {
   const AtmPoint     point{101325.0, 288.15};
   const GasScatterer gas{ConstantGasScattering{4.65e-31}, RayleighGasScattering{0.0}};
 
-  const auto bulk =
-      gas.get_bulk_scattering_properties_aro_gridded(point, Vector{6e14}, za_inc, delta_aa, za_scat_grid());
-  const Numeric k = bulk.extinction_matrix[0, 0, 0].A();
+  const auto    bulk = gas.aro_gridded(point, AtmSpectralPoint{}, Vector{6e14}, za_inc, delta_aa, za_scat_grid());
+  const Numeric k    = bulk.extinction_matrix[0, 0, 0].A();
   if (not check_lab_frame(bulk, k / (4.0 * Constant::pi), rayleigh, "Rayleigh")) return false;
 
-  const auto d_p = gas.get_bulk_scattering_properties_aro_gridded_derivative(
-      point, Vector{6e14}, za_inc, delta_aa, za_scat_grid(), AtmKeyVal{AtmKey::p});
+  const auto d_p = gas.aro_gridded_derivative(
+      point, AtmSpectralPoint{}, Vector{6e14}, za_inc, delta_aa, za_scat_grid(), AtmKeyVal{AtmKey::p});
   return check_lab_frame(d_p, k / (4.0 * Constant::pi * point.pressure), rayleigh, "dRayleigh/dp");
 }
 }  // namespace
@@ -251,6 +336,10 @@ int main() {
   }
   if (not test_henyey_greenstein_lab_frame()) {
     std::cerr << "Henyey-Greenstein lab-frame data failed\n";
+    return 1;
+  }
+  if (not test_henyey_greenstein_g_derivative()) {
+    std::cerr << "Henyey-Greenstein derivative by g failed\n";
     return 1;
   }
   if (not test_henyey_greenstein_spectral()) {

@@ -6,22 +6,29 @@
 #include <cmath>
 
 namespace scattering {
+namespace {
+//! The value of a property, which the properties must have
+Numeric value(const ScatteringSpeciesMap& ssprops, const ScatteringSpeciesProperty& key) {
+  const auto ptr = ssprops.find(key);
+  if (ptr == ssprops.end()) arts::user_error("ScatteringSpeciesProperty not found: \"{}\"", key);
+  return ptr->second;
+}
+}  // namespace
 
 MonodispersePSD::MonodispersePSD(ScatteringSpeciesProperty number_density_, Numeric t_min_, Numeric t_max_)
     : number_density(std::move(number_density_)), t_min(t_min_), t_max(t_max_) {}
 
-Vector MonodispersePSD::evaluate(const AtmPoint& point, const Vector& particle_sizes, Numeric, Numeric) const {
+Vector MonodispersePSD::evaluate(
+    Numeric temperature, const ScatteringSpeciesMap& ssprops, const Vector& particle_sizes, Numeric, Numeric) const {
   if (particle_sizes.size() != 1) arts::user_error("MonodispersePSD requires exactly one particle.");
-  if (not point.has(number_density)) arts::user_error("The PSD requires {}.", number_density);
-  return Vector{point.temperature < t_min || point.temperature > t_max ? 0.0 : point[number_density]};
+  if (not ssprops.contains(number_density)) arts::user_error("The PSD requires {}.", number_density);
+  return Vector{temperature < t_min || temperature > t_max ? 0.0 : value(ssprops, number_density)};
 }
 
-PSDData MonodispersePSD::evaluate_with_derivatives(const AtmPoint& point,
-                                                   const Vector&   sizes,
-                                                   Numeric         a,
-                                                   Numeric         b) const {
-  const Numeric derivative = point.temperature < t_min || point.temperature > t_max ? 0.0 : 1.0;
-  return {.values = evaluate(point, sizes, a, b), .derivatives = {{number_density, Vector{derivative}}}};
+PSDData MonodispersePSD::evaluate_with_derivatives(
+    Numeric temperature, const ScatteringSpeciesMap& ssprops, const Vector& sizes, Numeric a, Numeric b) const {
+  const Numeric derivative = temperature < t_min || temperature > t_max ? 0.0 : 1.0;
+  return {.values = evaluate(temperature, ssprops, sizes, a, b), .derivatives = {{number_density, Vector{derivative}}}};
 }
 namespace {
 bool temperature_allowed(Numeric temperature, Numeric t_min, Numeric t_max, bool picky) {
@@ -30,27 +37,28 @@ bool temperature_allowed(Numeric temperature, Numeric t_min, Numeric t_max, bool
   return false;
 }
 
-template <typename Evaluator> PSDData numerical_derivatives(const AtmPoint&                               point,
+template <typename Evaluator> PSDData numerical_derivatives(Numeric                                       temperature,
+                                                            const ScatteringSpeciesMap&                   ssprops,
                                                             const Vector&                                 sizes,
                                                             Numeric                                       a,
                                                             Numeric                                       b,
                                                             const std::vector<ScatteringSpeciesProperty>& properties,
                                                             const Evaluator&                              evaluate) {
-  PSDData result{.values = evaluate(point, sizes, a, b), .derivatives = {}};
+  PSDData result{.values = evaluate(temperature, ssprops, sizes, a, b), .derivatives = {}};
   for (const auto& property : properties) {
-    if (property.species_name.empty() or not point.has(property)) continue;
+    if (property.species_name.empty() or not ssprops.contains(property)) continue;
 
-    const Numeric value  = point[property];
+    const Numeric value  = scattering::value(ssprops, property);
     const Numeric step   = 1e-5 * std::max(std::abs(value), 1e-8);
-    AtmPoint      plus   = point;
+    auto          plus   = ssprops;
     plus[property]      += step;
-    Vector plus_value    = evaluate(plus, sizes, a, b);
+    Vector plus_value    = evaluate(temperature, plus, sizes, a, b);
     Vector derivative(sizes.size());
 
     if (value > step) {
-      AtmPoint minus            = point;
+      auto minus                = ssprops;
       minus[property]          -= step;
-      const Vector minus_value  = evaluate(minus, sizes, a, b);
+      const Vector minus_value  = evaluate(temperature, minus, sizes, a, b);
       for (Size i = 0; i < sizes.size(); ++i) derivative[i] = (plus_value[i] - minus_value[i]) / (2.0 * step);
     } else {
       for (Size i = 0; i < sizes.size(); ++i) derivative[i] = (plus_value[i] - result.values[i]) / step;
@@ -95,18 +103,19 @@ MGDSingleMoment::MGDSingleMoment(ScatteringSpeciesProperty moment_,
       t_max(t_max_),
       picky(picky_) {}
 
-Vector MGDSingleMoment::evaluate(const AtmPoint& point,
-                                 const Vector&   particle_sizes,
-                                 const Numeric&  scat_species_a,
-                                 const Numeric&  scat_species_b) const {
-  if (!point.has(moment)) {
+Vector MGDSingleMoment::evaluate(Numeric                     temperature,
+                                 const ScatteringSpeciesMap& ssprops,
+                                 const Vector&               particle_sizes,
+                                 const Numeric&              scat_species_a,
+                                 const Numeric&              scat_species_b) const {
+  if (!ssprops.contains(moment)) {
     std::ostringstream os;
-    os << "The PSD requires water content from '" << moment << "' but it is not part of the AtmPoint.";
+    os << "The PSD requires water content from '" << moment << "' but it is not a scattering species property.";
     throw std::runtime_error(os.str());
   }
 
-  Numeric water_content = point[moment];
-  Numeric t             = point[AtmKey::t];
+  Numeric water_content = value(ssprops, moment);
+  Numeric t             = temperature;
 
   // Outside of [t_min,tmax]?
   if (not temperature_allowed(t, t_min, t_max, picky)) return Vector(particle_sizes.size(), 0.0);
@@ -144,13 +153,12 @@ Vector MGDSingleMoment::evaluate(const AtmPoint& point,
   return psd;
 }
 
-PSDData MGDSingleMoment::evaluate_with_derivatives(const AtmPoint& point,
-                                                   const Vector&   sizes,
-                                                   Numeric         a,
-                                                   Numeric         b) const {
-  return numerical_derivatives(point, sizes, a, b, {moment}, [this](const auto& p, const auto& s, auto aa, auto bb) {
-    return evaluate(p, s, aa, bb);
-  });
+PSDData MGDSingleMoment::evaluate_with_derivatives(
+    Numeric temperature, const ScatteringSpeciesMap& ssprops, const Vector& sizes, Numeric a, Numeric b) const {
+  return numerical_derivatives(
+      temperature, ssprops, sizes, a, b, {moment}, [this](Numeric t, const auto& p, const auto& s, auto aa, auto bb) {
+        return evaluate(t, p, s, aa, bb);
+      });
 }
 
 MGDSingleMoment::MGDSingleMoment(
@@ -199,14 +207,15 @@ MGDMass::MGDMass(ScatteringSpeciesProperty mass_,
   if (std::isnan(n0) == std::isnan(lambda)) { arts::user_error("Exactly one of n0 and lambda must be NaN."); }
 }
 
-Vector MGDMass::evaluate(const AtmPoint& point, const Vector& sizes, Numeric a, Numeric b) const {
-  if (not point.has(mass)) arts::user_error("The PSD requires {}.", mass);
+Vector MGDMass::evaluate(
+    Numeric temperature, const ScatteringSpeciesMap& ssprops, const Vector& sizes, Numeric a, Numeric b) const {
+  if (not ssprops.contains(mass)) arts::user_error("The PSD requires {}.", mass);
   if (a <= 0.0 or b <= 0.0 or gamma <= 0.0) arts::user_error("Invalid modified-gamma or mass-size parameters.");
-  if (not temperature_allowed(point.temperature, t_min, t_max, picky)) return Vector(sizes.size(), 0.0);
+  if (not temperature_allowed(temperature, t_min, t_max, picky)) return Vector(sizes.size(), 0.0);
 
-  const Numeric content = std::abs(point[mass]);
+  const Numeric content = std::abs(value(ssprops, mass));
   if (content == 0.0) return Vector(sizes.size(), 0.0);
-  const Numeric sign  = point[mass] < 0.0 ? -1.0 : 1.0;
+  const Numeric sign  = value(ssprops, mass) < 0.0 ? -1.0 : 1.0;
   const Numeric order = (mu + b + 1.0) / gamma;
   if (order <= 0.0) arts::user_error("Modified-gamma mass moment requires mu + b + 1 > 0.");
 
@@ -223,10 +232,12 @@ Vector MGDMass::evaluate(const AtmPoint& point, const Vector& sizes, Numeric a, 
   return result;
 }
 
-PSDData MGDMass::evaluate_with_derivatives(const AtmPoint& point, const Vector& sizes, Numeric a, Numeric b) const {
-  return numerical_derivatives(point, sizes, a, b, {mass}, [this](const auto& p, const auto& s, auto aa, auto bb) {
-    return evaluate(p, s, aa, bb);
-  });
+PSDData MGDMass::evaluate_with_derivatives(
+    Numeric temperature, const ScatteringSpeciesMap& ssprops, const Vector& sizes, Numeric a, Numeric b) const {
+  return numerical_derivatives(
+      temperature, ssprops, sizes, a, b, {mass}, [this](Numeric t, const auto& p, const auto& s, auto aa, auto bb) {
+        return evaluate(t, p, s, aa, bb);
+      });
 }
 
 MGDTwoMoment::MGDTwoMoment(ScatteringSpeciesProperty mass_,
@@ -246,14 +257,15 @@ MGDTwoMoment::MGDTwoMoment(ScatteringSpeciesProperty mass_,
       t_max(t_max_),
       picky(picky_) {}
 
-Vector MGDTwoMoment::evaluate(const AtmPoint& point, const Vector& sizes, Numeric a, Numeric b) const {
-  if (not point.has(mass) or not point.has(second_moment))
+Vector MGDTwoMoment::evaluate(
+    Numeric temperature, const ScatteringSpeciesMap& ssprops, const Vector& sizes, Numeric a, Numeric b) const {
+  if (not ssprops.contains(mass) or not ssprops.contains(second_moment))
     arts::user_error("The PSD requires both {} and {}.", mass, second_moment);
   if (a <= 0.0 or b <= 0.0 or gamma <= 0.0) arts::user_error("Invalid modified-gamma or mass-size parameters.");
-  if (not temperature_allowed(point.temperature, t_min, t_max, picky)) return Vector(sizes.size(), 0.0);
+  if (not temperature_allowed(temperature, t_min, t_max, picky)) return Vector(sizes.size(), 0.0);
 
-  const Numeric content = std::abs(point[mass]);
-  const Numeric second  = point[second_moment];
+  const Numeric content = std::abs(value(ssprops, mass));
+  const Numeric second  = value(ssprops, second_moment);
   if (second <= 0.0) arts::user_error("The second PSD moment {} must be positive.", second_moment);
   if (content == 0.0) return Vector(sizes.size(), 0.0);
 
@@ -270,18 +282,20 @@ Vector MGDTwoMoment::evaluate(const AtmPoint& point, const Vector& sizes, Numeri
   }
   const Numeric local_n0 = gamma * std::pow(lambda, order) * content / (a * g_order);
   Vector        result   = modified_gamma(sizes, local_n0, mu, lambda, gamma);
-  if (point[mass] < 0.0) result *= -1.0;
+  if (value(ssprops, mass) < 0.0) result *= -1.0;
   return result;
 }
 
-PSDData MGDTwoMoment::evaluate_with_derivatives(const AtmPoint& point,
-                                                const Vector&   sizes,
-                                                Numeric         a,
-                                                Numeric         b) const {
+PSDData MGDTwoMoment::evaluate_with_derivatives(
+    Numeric temperature, const ScatteringSpeciesMap& ssprops, const Vector& sizes, Numeric a, Numeric b) const {
   return numerical_derivatives(
-      point, sizes, a, b, {mass, second_moment}, [this](const auto& p, const auto& s, auto aa, auto bb) {
-        return evaluate(p, s, aa, bb);
-      });
+      temperature,
+      ssprops,
+      sizes,
+      a,
+      b,
+      {mass, second_moment},
+      [this](Numeric t, const auto& p, const auto& s, auto aa, auto bb) { return evaluate(t, p, s, aa, bb); });
 }
 
 DelanoeEtAl14::DelanoeEtAl14(ScatteringSpeciesProperty mass_,
@@ -315,17 +329,18 @@ DelanoeEtAl14::DelanoeEtAl14(ScatteringSpeciesProperty mass_,
       dm_min(dm_min_),
       picky(picky_) {}
 
-Vector DelanoeEtAl14::evaluate(const AtmPoint& point, const Vector& sizes, Numeric, Numeric) const {
-  if (not point.has(mass)) arts::user_error("The PSD requires {}.", mass);
-  if (not temperature_allowed(point.temperature, t_min, t_max, picky)) return Vector(sizes.size(), 0.0);
-  const Numeric iwc = point[mass];
+Vector DelanoeEtAl14::evaluate(
+    Numeric temperature, const ScatteringSpeciesMap& ssprops, const Vector& sizes, Numeric, Numeric) const {
+  if (not ssprops.contains(mass)) arts::user_error("The PSD requires {}.", mass);
+  if (not temperature_allowed(temperature, t_min, t_max, picky)) return Vector(sizes.size(), 0.0);
+  const Numeric iwc = value(ssprops, mass);
   if (iwc == 0.0) return Vector(sizes.size(), 0.0);
   if (iwc < 0.0) arts::user_error("Delanoe14 requires non-negative ice mass density.");
 
-  const bool has_n0 = not intercept_parameter.species_name.empty() and point.has(intercept_parameter);
-  const bool has_dm = not mean_size.species_name.empty() and point.has(mean_size);
-  Numeric    n0     = has_n0 ? point[intercept_parameter] : delanoe_n0_from_temperature(point.temperature);
-  Numeric    dm     = has_dm ? point[mean_size] : delanoe_dm_from_mass_n0(iwc, n0, rho);
+  const bool has_n0 = not intercept_parameter.species_name.empty() and ssprops.contains(intercept_parameter);
+  const bool has_dm = not mean_size.species_name.empty() and ssprops.contains(mean_size);
+  Numeric    n0     = has_n0 ? value(ssprops, intercept_parameter) : delanoe_n0_from_temperature(temperature);
+  Numeric    dm     = has_dm ? value(ssprops, mean_size) : delanoe_dm_from_mass_n0(iwc, n0, rho);
   if (has_dm and not has_n0) n0 = delanoe_n0_from_mass_dm(iwc, dm, rho);
   if (dm <= 0.0 or dm < dm_min) arts::user_error("Delanoe14 Dm={} m is below the allowed minimum {} m.", dm, dm_min);
 
@@ -342,17 +357,16 @@ Vector DelanoeEtAl14::evaluate(const AtmPoint& point, const Vector& sizes, Numer
   return result;
 }
 
-PSDData DelanoeEtAl14::evaluate_with_derivatives(const AtmPoint& point,
-                                                 const Vector&   sizes,
-                                                 Numeric         a,
-                                                 Numeric         b) const {
+PSDData DelanoeEtAl14::evaluate_with_derivatives(
+    Numeric temperature, const ScatteringSpeciesMap& ssprops, const Vector& sizes, Numeric a, Numeric b) const {
   return numerical_derivatives(
-      point,
+      temperature,
+      ssprops,
       sizes,
       a,
       b,
       {mass, intercept_parameter, mean_size},
-      [this](const auto& p, const auto& s, auto aa, auto bb) { return evaluate(p, s, aa, bb); });
+      [this](Numeric t, const auto& p, const auto& s, auto aa, auto bb) { return evaluate(t, p, s, aa, bb); });
 }
 
 FieldEtAl07::FieldEtAl07(ScatteringSpeciesProperty mass_,
@@ -372,15 +386,16 @@ FieldEtAl07::FieldEtAl07(ScatteringSpeciesProperty mass_,
   if (regime != "TR" and regime != "ML") { arts::user_error("Field07 regime must be 'TR' or 'ML'."); }
 }
 
-Vector FieldEtAl07::evaluate(const AtmPoint& point, const Vector& sizes, Numeric a, Numeric b) const {
-  if (not point.has(mass)) arts::user_error("The PSD requires {}.", mass);
+Vector FieldEtAl07::evaluate(
+    Numeric temperature, const ScatteringSpeciesMap& ssprops, const Vector& sizes, Numeric a, Numeric b) const {
+  if (not ssprops.contains(mass)) arts::user_error("The PSD requires {}.", mass);
   if (a <= 0.0 or b < 1.01 or b > 4.0) arts::user_error("Field07 received an invalid mass-size relationship.");
-  if (not temperature_allowed(point.temperature, t_min, t_max, picky)) return Vector(sizes.size(), 0.0);
-  Numeric content = point[mass];
+  if (not temperature_allowed(temperature, t_min, t_max, picky)) return Vector(sizes.size(), 0.0);
+  Numeric content = value(ssprops, mass);
   if (std::abs(content) < 1e-15) return Vector(sizes.size(), 0.0);
   const Numeric sign = content < 0.0 ? -1.0 : 1.0;
   content            = std::abs(content);
-  const Numeric tc   = std::clamp(point.temperature, t_min_psd, t_max_psd) - 273.15;
+  const Numeric tc   = std::clamp(temperature, t_min_psd, t_max_psd) - 273.15;
 
   const std::array<Numeric, 5>     q = tropical ? std::array<Numeric, 5>{152., -12.4, 3.28, -0.78, -1.94}
                                                 : std::array<Numeric, 5>{141., -16.8, 102., 2.07, -4.82};
@@ -410,10 +425,12 @@ Vector FieldEtAl07::evaluate(const AtmPoint& point, const Vector& sizes, Numeric
   return result;
 }
 
-PSDData FieldEtAl07::evaluate_with_derivatives(const AtmPoint& point, const Vector& sizes, Numeric a, Numeric b) const {
-  return numerical_derivatives(point, sizes, a, b, {mass}, [this](const auto& p, const auto& s, auto aa, auto bb) {
-    return evaluate(p, s, aa, bb);
-  });
+PSDData FieldEtAl07::evaluate_with_derivatives(
+    Numeric temperature, const ScatteringSpeciesMap& ssprops, const Vector& sizes, Numeric a, Numeric b) const {
+  return numerical_derivatives(
+      temperature, ssprops, sizes, a, b, {mass}, [this](Numeric t, const auto& p, const auto& s, auto aa, auto bb) {
+        return evaluate(t, p, s, aa, bb);
+      });
 }
 
 McFarquharHeymsfield97::McFarquharHeymsfield97(ScatteringSpeciesProperty mass_,
@@ -429,16 +446,17 @@ McFarquharHeymsfield97::McFarquharHeymsfield97(ScatteringSpeciesProperty mass_,
       t_max_psd(t_max_psd_),
       picky(picky_) {}
 
-Vector McFarquharHeymsfield97::evaluate(const AtmPoint& point, const Vector& sizes, Numeric a, Numeric b) const {
-  if (not point.has(mass)) arts::user_error("The PSD requires {}.", mass);
+Vector McFarquharHeymsfield97::evaluate(
+    Numeric temperature, const ScatteringSpeciesMap& ssprops, const Vector& sizes, Numeric a, Numeric b) const {
+  if (not ssprops.contains(mass)) arts::user_error("The PSD requires {}.", mass);
   if (b < 2.9 or b > 3.1 or a < 460.0 or a > 500.0)
     arts::user_error("MH97 requires an ice-sphere mass-size relationship near a=480, b=3.");
-  if (not temperature_allowed(point.temperature, t_min, t_max, picky)) return Vector(sizes.size(), 0.0);
-  Numeric iwc = point[mass];
+  if (not temperature_allowed(temperature, t_min, t_max, picky)) return Vector(sizes.size(), 0.0);
+  Numeric iwc = value(ssprops, mass);
   if (iwc == 0.0) return Vector(sizes.size(), 0.0);
   const Numeric sign = iwc < 0.0 ? -1.0 : 1.0;
   iwc                = std::abs(iwc) * 1e3;  // kg/m3 to g/m3
-  const Numeric tc   = std::clamp(point.temperature, t_min_psd, t_max_psd) - 273.15;
+  const Numeric tc   = std::clamp(temperature, t_min_psd, t_max_psd) - 273.15;
   const Numeric rho  = Constant::density_of_ice_at_0c * 1e3;
 
   const Numeric small_iwc = std::min(iwc, 0.252 * std::pow(iwc, 0.837));
@@ -471,13 +489,12 @@ Vector McFarquharHeymsfield97::evaluate(const AtmPoint& point, const Vector& siz
   return result;
 }
 
-PSDData McFarquharHeymsfield97::evaluate_with_derivatives(const AtmPoint& point,
-                                                          const Vector&   sizes,
-                                                          Numeric         a,
-                                                          Numeric         b) const {
-  return numerical_derivatives(point, sizes, a, b, {mass}, [this](const auto& p, const auto& s, auto aa, auto bb) {
-    return evaluate(p, s, aa, bb);
-  });
+PSDData McFarquharHeymsfield97::evaluate_with_derivatives(
+    Numeric temperature, const ScatteringSpeciesMap& ssprops, const Vector& sizes, Numeric a, Numeric b) const {
+  return numerical_derivatives(
+      temperature, ssprops, sizes, a, b, {mass}, [this](Numeric t, const auto& p, const auto& s, auto aa, auto bb) {
+        return evaluate(t, p, s, aa, bb);
+      });
 }
 
 BinnedPSD::BinnedPSD(SizeParameter size_parameter_, Vector bins_, Vector counts_, Numeric t_min_, Numeric t_max_)
@@ -488,14 +505,15 @@ BinnedPSD::BinnedPSD(SizeParameter size_parameter_, Vector bins_, Vector counts_
   if (!std::is_sorted(bins.begin(), bins.end())) { arts::user_error("The bins vector must be strictly increasing."); }
 }
 
-Vector BinnedPSD::evaluate(const AtmPoint& point,
-                           const Vector&   particle_sizes,
+Vector BinnedPSD::evaluate(Numeric temperature,
+                           const ScatteringSpeciesMap& /*ssprops*/,
+                           const Vector& particle_sizes,
                            const Numeric& /*scat_species_a*/,
                            const Numeric& /*scat_species_b*/) const {
   Index  n_parts = particle_sizes.size();
   Vector pnd     = Vector(n_parts);
   for (Index ind = 0; ind < n_parts; ++ind) {
-    if ((point.temperature < t_min) || (t_max < point.temperature)) {
+    if ((temperature < t_min) || (t_max < temperature)) {
       pnd[ind] = 0.0;
     } else {
       Index bin_ind = digitize(bins, particle_sizes[ind]);
@@ -512,8 +530,9 @@ Vector BinnedPSD::evaluate(const AtmPoint& point,
   return pnd;
 }
 
-PSDData BinnedPSD::evaluate_with_derivatives(const AtmPoint& point, const Vector& sizes, Numeric a, Numeric b) const {
-  return {.values = evaluate(point, sizes, a, b), .derivatives = {}};
+PSDData BinnedPSD::evaluate_with_derivatives(
+    Numeric temperature, const ScatteringSpeciesMap& ssprops, const Vector& sizes, Numeric a, Numeric b) const {
+  return {.values = evaluate(temperature, ssprops, sizes, a, b), .derivatives = {}};
 }
 
 Vector size_bin_widths(const Vector& sizes) {

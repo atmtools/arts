@@ -62,7 +62,7 @@ void monodisperse_cutoff() {
   point[density] = 7.0;
   for (Numeric temperature : {230.0, 240.0, 250.0, 260.0, 270.0}) {
     point.temperature = temperature;
-    const auto result = psd.evaluate_with_derivatives(point, Vector{1e-4}, 1.0, 3.0);
+    const auto result = psd.evaluate_with_derivatives(point.temperature, point.ssprops, Vector{1e-4}, 1.0, 3.0);
     const bool active = temperature >= 240.0 and temperature <= 260.0;
     close(result.values[0], active ? 7.0 : 0.0, "PSD cutoff value");
     close(result.derivatives.at(density)[0], active ? 1.0 : 0.0, "PSD cutoff derivative");
@@ -176,6 +176,11 @@ void radar_gates() {
   atmosphere.top_of_atmosphere = 2000.0;
   atmosphere[AtmKey::p]        = 1e5;
   atmosphere[AtmKey::t]        = 250.0;
+  constexpr Numeric extinction = 1e-8;
+  AtmSpectralField  spectral;
+  spectral[AtmSpectralPropertyTag{"extinction"}] = extinction;
+  spectral[AtmSpectralPropertyTag{"ssa"}]        = 1.0;
+  spectral[AtmSpectralPropertyTag{"g"}]          = 0.0;
   SurfaceField surface;
   surface.ellipsoid = Vector2{6371e3, 6371e3};
   const auto gas    = [] {
@@ -207,9 +212,7 @@ void radar_gates() {
     return agenda;
   };
   ArrayOfScatteringSpecies species;
-  constexpr Numeric        extinction = 1e-8;
-  species.species.emplace_back(HenyeyGreensteinScatterer{
-      ExtSSACallback{[extinction](Numeric, const AtmPoint&) { return std::pair{extinction, 1.0}; }}, 0.0});
+  species.species.emplace_back(HenyeyGreensteinScatterer{"extinction", "ssa", "g"});
   MCAntenna antenna;
   antenna.set_pencil_beam();
   const AscendingGrid bins{100.0, 200.0, 400.0};
@@ -221,6 +224,7 @@ void radar_gates() {
             error,
             time,
             atmosphere,
+            spectral,
             surface,
             species,
             antenna,
@@ -307,6 +311,7 @@ void radar_gates() {
                                              limits,
                                              JacobianTargets{},
                                              atmosphere,
+                                             spectral,
                                              surface,
                                              species,
                                              observer_path,

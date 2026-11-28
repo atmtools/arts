@@ -249,7 +249,7 @@ This method simply is a convenience wrapper for that use case.
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "spectral_radClearskyScattering",
-      .desc    = "Computes clearsky spectral radiances with first-order solar scattering from scat_species",
+      .desc    = "Computes clearsky spectral radiances with first-order solar scattering from atm_scat_species",
       .author  = {"Richard Larsson"},
       .methods = {"ray_pointBackground",
                   "spectral_rad_bkgAgendasAtEndOfPath",
@@ -349,10 +349,20 @@ Common use case (requires having set the ENV variables, as described in the docu
       .author  = {"Richard Larsson"},
       .methods = {"abs_bandsFromModelState",
                   "surf_fieldFromModelState",
+                  "surf_spectral_fieldFromModelState",
                   "subsurf_fieldFromModelState",
+                  "subsurf_spectral_fieldFromModelState",
                   "atm_fieldFromModelState",
+                  "atm_spectral_fieldFromModelState",
                   "measurement_sensorsFromModelState"},
-      .out     = {"abs_bands", "surf_field", "subsurf_field", "atm_field", "measurement_sensors"},
+      .out     = {"abs_bands",
+                  "surf_field",
+                  "surf_spectral_field",
+                  "subsurf_field",
+                  "subsurf_spectral_field",
+                  "atm_field",
+                  "atm_spectral_field",
+                  "measurement_sensors"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
@@ -361,8 +371,11 @@ Common use case (requires having set the ENV variables, as described in the docu
       .author  = {"Richard Larsson"},
       .methods = {"model_state_vecInit",
                   "model_state_vecFromAtmosphere",
+                  "model_state_vecFromAtmosphereSpectral",
                   "model_state_vecFromSurface",
+                  "model_state_vecFromSurfaceSpectral",
                   "model_state_vecFromSubsurface",
+                  "model_state_vecFromSubsurfaceSpectral",
                   "model_state_vecFromBands",
                   "model_state_vecFromSensor"},
       .out     = {"model_state_vec"},

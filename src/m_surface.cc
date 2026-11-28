@@ -209,3 +209,57 @@ void spectral_radSurfaceReflectance(const Workspace&            ws,
   }
 }
 ARTS_METHOD_ERROR_CATCH
+
+void spectral_radSurfaceDepolarization(StokvecVector&              spectral_rad,
+                                       StokvecMatrix&              spectral_rad_jac,
+                                       const AscendingGrid&        freq_grid,
+                                       const SurfaceSpectralField& surf_spectral_field,
+                                       const JacobianTargets&      jac_targets,
+                                       const PropagationPathPoint& ray_point) try {
+  ARTS_TIME_REPORT
+
+  const SurfaceSpectralPropertyTag key{"depolarization factor"};
+
+  const Size nf = freq_grid.size();
+  const Size nx = jac_targets.x_size();
+  if (spectral_rad.size() != nf or spectral_rad_jac.nrows() != static_cast<Index>(nx) or
+      spectral_rad_jac.ncols() != static_cast<Index>(nf))
+    arts::user_error(
+        "*spectral_rad* has {} and *spectral_rad_jac* {:B,} values, but there are {} frequencies and {} "
+        "model state elements",
+        spectral_rad.size(),
+        spectral_rad_jac.shape(),
+        nf,
+        nx);
+
+  const Numeric lat         = ray_point.latitude();
+  const Numeric lon         = ray_point.longitude();
+  const auto&   data        = surf_spectral_field[key];
+  const Vector  depolarized = data.at(freq_grid, lat, lon);
+
+  // The linear polarization leaving the surface is scaled by one minus the factor
+  for (Size iv = 0; iv < nf; iv++) {
+    const Numeric scale = 1.0 - depolarized[iv];
+    for (Size ix = 0; ix < nx; ix++) {
+      spectral_rad_jac[ix, iv].Q() *= scale;
+      spectral_rad_jac[ix, iv].U() *= scale;
+    }
+  }
+
+  // The derivative by the factor at a frequency is -(Q, U), mapped to the state by the weights at that frequency
+  std::vector<std::pair<Index, Numeric>> weights;
+  for (const auto& target : jac_targets.surf_spectral) {
+    if (target.type != key) continue;
+    for (Size iv = 0; iv < nf; iv++) {
+      data.flat_weight(weights, freq_grid[iv], lat, lon);
+      for (const auto& [j, w] : weights)
+        spectral_rad_jac[target.x_start + j, iv] += w * Stokvec{0.0, -spectral_rad[iv].Q(), -spectral_rad[iv].U(), 0.0};
+    }
+  }
+
+  for (Size iv = 0; iv < nf; iv++) {
+    spectral_rad[iv].Q() *= 1.0 - depolarized[iv];
+    spectral_rad[iv].U() *= 1.0 - depolarized[iv];
+  }
+}
+ARTS_METHOD_ERROR_CATCH

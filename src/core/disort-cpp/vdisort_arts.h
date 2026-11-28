@@ -32,7 +32,7 @@
  * Relation to ARTS.  ARTS's scattering data take the propagation directions
  * (za, aa), with aa clockwise seen from above.  ARTS's laboratory-frame
  * phase matrix (ArrayOfScatteringSpecies::
- * get_bulk_scattering_properties_aro_gridded) is the phase matrix of the
+ * aro_gridded) is the phase matrix of the
  * basis above with mu = cos(za) and phi = -aa, element by element, with the
  * same I, Q, U and V (tested against vector geometry in
  * cpp.fast.vdisort-arts-test).  So VDISORT uses ARTS's laboratory-frame
@@ -56,6 +56,8 @@ struct fourier_optics {
 
 /** The phase-matrix Fourier coefficients of scattering species at one atmospheric point.
  *
+ * atm_spectral_point is the spectral point of the atmosphere there, at frequency.
+ *
  * mu_out, mu_in: signed direction cosines (> 0 upward), each in [-1, 0) or
  *   (0, 1], e.g. VDISORT's streams (upward first) and, for the direct beam,
  *   mu_in = {-mu0}.
@@ -68,7 +70,7 @@ struct fourier_optics {
  * ARTS's laboratory-frame phase matrix from the incident za = acos(mu_i) to
  * the scattered za = acos(mu_o) at delta_aa = aa_scat - aa_inc = phi.
  * Everything comes from the species' azimuthal Fourier modes at exactly
- * these zenith angles (get_bulk_scattering_properties_aro_fourier): the
+ * these zenith angles (aro_fourier): the
  * modes, the extinction and absorption, and the phase integral
  * sigma = int Z11 dOmega.  They are exact for GasScatterer and
  * HenyeyGreensteinScatterer, and for particle habits from their Legendre
@@ -89,6 +91,7 @@ struct fourier_optics {
  */
 fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_species,
                                  const AtmPoint&                 atm_point,
+                                 const AtmSpectralPoint&         atm_spectral_point,
                                  Numeric                         frequency,
                                  const Vector&                   mu_out,
                                  const Vector&                   mu_in,
@@ -106,9 +109,14 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
  *   scattering_optics.
  *
  * Returns the ordinary Fourier coefficients C^m and S^m of the
- * laboratory-frame phase matrix in the basis of scattering_optics, made by
- * the same azimuthal integration (scattering::tro_lab_frame_fourier_modes);
- * extinction and scattering are 0.
+ * laboratory-frame phase matrix in the basis of scattering_optics, in closed
+ * form as VDISORT has them (Lin et al. 2022, Eqs. 56-67): the expansion of
+ * the scattering matrix in generalized spherical functions to degree
+ * nleg - 1, whose coefficients the moments give exactly, and the addition
+ * theorem of those functions.  That expansion is regular at 0 and 180 deg,
+ * where the truncated series of each element is not, so it is the phase
+ * matrix whose modes these are; the two differ by the truncation of the
+ * series.  Extinction and scattering are 0.
  */
 fourier_optics legendre_fourier_optics(const CompactPlanarMuelmatConstVectorView& moments,
                                        const Vector&                              mu_out,
@@ -157,7 +165,8 @@ struct path_settings {
  * is the mean of the A elements of the unpolarized gas propagation matrix
  * (spectral_propmat_path, per metre, without particles) at its two levels,
  * and polarized gas propagation matrices are rejected; the frequency is
- * freq_grid[freq_index].
+ * freq_grid[freq_index].  The spectral points are atm_spectral_field at the
+ * positions of ray_path.
  *
  * The particle optics of a layer are the mean of its two levels'
  * scattering_optics() on VDISORT's streams: mean extinction, mean
@@ -177,6 +186,7 @@ struct path_settings {
  */
 main_data main_data_from_path(const ArrayOfPropagationPathPoint& ray_path,
                               const ArrayOfAtmPoint&             atm_path,
+                              const AtmSpectralField&            atm_spectral_field,
                               const ArrayOfPropmatVector&        spectral_propmat_path,
                               const AscendingGrid&               freq_grid,
                               Index                              freq_index,

@@ -161,6 +161,18 @@ channel for a camera.  The sensor is named by the optional ``name``, or after
 its number of channels without one.
 Positions and lines of sight are as in :class:`~pyarts3.arts.SensorPosLos`.
 
+Each placement can also be rolled about its boresight, by the optional
+``roll`` in degrees, one per placement.  The roll turns the whole instrument:
+the polarization responses turn from v towards h, as
+:meth:`~pyarts3.arts.sensors.Polarization.at` turns them, and the offsets of the
+antenna pattern and the pixel grid of a camera turn with them.  The beam of each
+pixel of a camera is laid out in the frame of the pixel's line of sight, with or
+without a roll.  Without a roll, the frame of the instrument is that of the
+local zenith and azimuth at the boresight.
+:func:`~pyarts3.workspace.Workspace.measurement_sensorsAddSensorBuilder` adds the
+sensor of a builder at positions, bore lines of sight and rolls to
+:attr:`~pyarts3.workspace.Workspace.measurement_sensors`.
+
 :meth:`~pyarts3.arts.SensorBuilder.cross_track` places a cross-track scanner.
 Each position has a heading, its flight direction in degrees clockwise from
 north, and scans the same signed scan angles across that direction.  A scan

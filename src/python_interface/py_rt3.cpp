@@ -250,13 +250,14 @@ and sum_m c_m sin(m phi) for U, V, as rt3.f's OUTPUT_FILE does.)");
          &rt3::scattering_optics,
          "scattering_species"_a,
          "atm_point"_a,
+         "atm_spectral_point"_a,
          "frequency"_a,
          "degree"_a,
          "normalisation_tolerance"_a = 1e-3,
          R"(The RT3 scattering set of ARTS scattering species at one atmospheric point.
 
 The species give their totally randomly oriented (TRO) Legendre series up to
-``degree`` themselves (``get_bulk_scattering_properties_tro_spectral``);
+``degree`` themselves (``tro_spectral``);
 gridded particle data must be converted to a Legendre series first
 (``ParticleHabit.to_tro_spectral_with_report``).  The series is
 normalised so that ``legendre[0].F11 == 1``.  ``extinction`` is K11 and
@@ -327,6 +328,7 @@ convention.  See :doc:`dev.rt3`.
          &rt3::problem_from_path,
          "ray_path"_a,
          "atm_path"_a,
+         "atm_spectral_field"_a,
          "spectral_propmat_path"_a,
          "freq_grid"_a,
          "freq_index"_a,

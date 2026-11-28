@@ -1752,7 +1752,7 @@ which are required to derive the Gaussian forward-peak width.
 
   wsm_data["spectral_propmat_scatAddSpectralScatteringSpeciesTRO"] = {
       .desc =
-          R"--(Adds *scat_species* results for totally random oriented spectral calculations to
+          R"--(Adds *atm_scat_species* results for totally random oriented spectral calculations to
 *spectral_propmat_scat* and co.
 )--",
       .author = {"Richard Larsson"},
@@ -1761,17 +1761,19 @@ which are required to derive the Gaussian forward-peak width.
                  "spectral_absvec_scat",
                  "spectral_phamat_spectral",
                  "freq_grid",
+                 "ray_point",
                  "atm_point",
-                 "scat_species"},
+                 "atm_spectral_field",
+                 "atm_scat_species"},
   };
 
   wsm_data["spectral_propmat_scat_pathFromSpectralAgenda"] = {
       .desc =
           R"--(Compute *spectral_propmat_scat_path* and co for a path.
 )--",
-      .author         = {"Richard Larsson"},
-      .out            = {"spectral_propmat_scat_path", "spectral_absvec_scat_path", "spectral_phamat_spectral_path"},
-      .in             = {"freq_grid_path", "atm_path", "legendre_degree", "spectral_propmat_scat_spectral_agenda"},
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_propmat_scat_path", "spectral_absvec_scat_path", "spectral_phamat_spectral_path"},
+      .in     = {"freq_grid_path", "ray_path", "atm_path", "legendre_degree", "spectral_propmat_scat_spectral_agenda"},
       .pass_workspace = true,
   };
 
@@ -2265,6 +2267,23 @@ where :math:`T_s` is the surface temperature extracted at the input *ray_point*.
       .author = {"Richard Larsson"},
       .out    = {"spectral_rad", "spectral_rad_jac"},
       .in     = {"freq_grid", "surf_field", "jac_targets", "ray_point"},
+  };
+
+  wsm_data["spectral_radSurfaceDepolarization"] = {
+      .desc   = R"--(Depolarizes the radiance leaving the surface.
+
+The linear polarization, Q and U, of *spectral_rad* is scaled by
+:math:`1 - D`, with :math:`D` the "depolarization factor" of
+*surf_spectral_field* at *ray_point* at each frequency.  :math:`D = 0` keeps
+the radiance and :math:`D = 1` leaves it unpolarized.  In the basis of the
+facet, where a Fresnel surface gives no U, this scales Q.
+
+The derivatives in *spectral_rad_jac* are scaled alike, and the derivative by a
+spectral surface target of the factor is added.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_rad", "spectral_rad_jac"},
+      .in     = {"spectral_rad", "spectral_rad_jac", "freq_grid", "surf_spectral_field", "jac_targets", "ray_point"},
   };
 
   wsm_data["spectral_radSurfaceReflectance"] = {
@@ -2983,7 +3002,15 @@ building of an actual Jacobian matrix.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"jac_targets"},
-      .in     = {"jac_targets", "atm_field", "surf_field", "subsurf_field", "abs_bands", "measurement_sensors"},
+      .in     = {"jac_targets",
+                 "atm_field",
+                 "atm_spectral_field",
+                 "surf_field",
+                 "surf_spectral_field",
+                 "subsurf_field",
+                 "subsurf_spectral_field",
+                 "abs_bands",
+                 "measurement_sensors"},
   };
 
   const auto jac2oem = [&wsm_data](const std::string& name) {
@@ -3240,6 +3267,57 @@ See *SpeciesEnum* for valid ``species``
                     "The perturbation used in methods that cannot compute derivatives analytically"},
   };
   wsm_data["oemAddSubsurface"] = jac2oem("jac_targetsAddSubsurface");
+
+  wsm_data["jac_targetsAddAtmosphereSpectral"] = {
+      .desc      = R"--(Sets a spectral atmospheric target.
+
+The target is one property of *atm_spectral_field*, and its model state is the flat data
+of that property, frequency slowest.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets"},
+      .gin       = {"target", "d"},
+      .gin_type  = {"AtmSpectralPropertyTag", "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.1}},
+      .gin_desc  = {"The target of interest",
+                    "The perturbation used in methods that cannot compute derivatives analytically"},
+  };
+  wsm_data["oemAddAtmosphereSpectral"] = jac2oem("jac_targetsAddAtmosphereSpectral");
+
+  wsm_data["jac_targetsAddSurfaceSpectral"] = {
+      .desc      = R"--(Sets a spectral surface target.
+
+The target is one property of *surf_spectral_field*, and its model state is the flat data
+of that property, frequency slowest.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets"},
+      .gin       = {"target", "d"},
+      .gin_type  = {"SurfaceSpectralPropertyTag", "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.1}},
+      .gin_desc  = {"The target of interest",
+                    "The perturbation used in methods that cannot compute derivatives analytically"},
+  };
+  wsm_data["oemAddSurfaceSpectral"] = jac2oem("jac_targetsAddSurfaceSpectral");
+
+  wsm_data["jac_targetsAddSubsurfaceSpectral"] = {
+      .desc      = R"--(Sets a spectral subsurface target.
+
+The target is one property of *subsurf_spectral_field*, and its model state is the flat data
+of that property, frequency slowest.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets"},
+      .gin       = {"target", "d"},
+      .gin_type  = {"SubsurfaceSpectralPropertyTag", "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.1}},
+      .gin_desc  = {"The target of interest",
+                    "The perturbation used in methods that cannot compute derivatives analytically"},
+  };
+  wsm_data["oemAddSubsurfaceSpectral"] = jac2oem("jac_targetsAddSubsurfaceSpectral");
 
   wsm_data["jac_targetsAddSpeciesIsotopologueRatio"] = {
       .desc      = R"--(Set isotopologue ratio derivative
@@ -4820,23 +4898,28 @@ The quoted strings must be used as the grid names of the gridded field.
 
   wsm_data["measurement_sensorsAddSensorBuilder"] = {
       .desc =
-          R"--(Adds the sensor that a *SensorBuilder* builds at one position and bore line of sight.
+          R"--(Adds the sensor that a *SensorBuilder* builds at its placements.
 
-The antenna of the builder samples its lines of sight around the bore line of
-sight on the ellipsoid of *surf_field*.  The elements are ordered by pixel of
-the antenna and then by channel, as the meta of the sensor.
+Each position with its bore line of sight is one placement of the instrument,
+rolled about its boresight by its roll if ``roll`` is given.  The roll turns
+the whole instrument, its polarization responses and its antenna pattern, from
+v towards h in the polarization basis of the boresight.  The antenna samples
+its lines of sight around each bore line of sight on the ellipsoid of
+*surf_field*.  The elements are ordered by placement, then by pixel of the
+antenna and then by channel, as the meta of the sensor.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"measurement_sensors"},
       .in        = {"measurement_sensors", "surf_field"},
-      .gin       = {"pos", "los", "sensor_builder", "name"},
-      .gin_type  = {"Vector3", "Vector2", "SensorBuilder", "String"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt, String{}},
+      .gin       = {"pos", "los", "sensor_builder", "name", "roll"},
+      .gin_type  = {"ArrayOfVector3", "ArrayOfVector2", "SensorBuilder", "String", "Vector"},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt, String{}, Vector{}},
       .gin_desc =
-          {"A position [alt, lat, lon]",
-           "A bore line of sight [zenith, azimuth]",
+          {"The positions [alt, lat, lon]",
+           "The bore lines of sight [zenith, azimuth], one per position",
            "The channels and the antenna of the sensor",
-           "The name of the sensor and of its meta, or empty to name it sensor-N, where N is its position in *measurement_sensors*"},
+           "The name of the sensor and of its meta, or empty to name it sensor-N, where N is its position in *measurement_sensors*",
+           "The roll of each placement about its boresight [deg], or empty for none"},
   };
 
   wsm_data["measurement_sensorsAddCamera"] = {
@@ -5078,10 +5161,10 @@ Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
 
   wsm_data["spectral_rad_scat_pathSunsFirstOrder"] = {
       .desc =
-          R"--(Compute first-order solar scattering from *scat_species* along *ray_path*.
+          R"--(Compute first-order solar scattering from *atm_scat_species* along *ray_path*.
 
 Unlike *spectral_rad_scat_pathSunsFirstOrderRayleigh*, both the scattering
-coefficient and the polarized phase matrix come from *scat_species*.  This
+coefficient and the polarized phase matrix come from *atm_scat_species*.  This
 supports gas, particulate, and mixed scattering species.
 )--",
       .author         = {"Richard Larsson"},
@@ -5092,8 +5175,9 @@ supports gas, particulate, and mixed scattering species.
                          "jac_targets",
                          "freq_grid",
                          "atm_field",
+                         "atm_spectral_field",
                          "surf_field",
-                         "scat_species",
+                         "atm_scat_species",
                          "spectral_propmat_and_atm_path_agenda",
                          "rte_option"},
       .gin            = {"hse_derivative"},
@@ -5125,6 +5209,54 @@ supports gas, particulate, and mixed scattering species.
       .author = {"Richard Larsson"},
       .out    = {"subsurf_field"},
       .in     = {"subsurf_field", "model_state_vec", "model_state_targets"},
+  };
+
+  wsm_data["atm_spectral_fieldFromModelState"] = {
+      .desc   = R"--(Sets *atm_spectral_field* to the state of the model.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"atm_spectral_field"},
+      .in     = {"atm_spectral_field", "model_state_vec", "model_state_targets"},
+  };
+
+  wsm_data["model_state_vecFromAtmosphereSpectral"] = {
+      .desc   = R"--(Sets *model_state_vec*'s part of *atm_spectral_field*.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vec"},
+      .in     = {"model_state_vec", "atm_spectral_field", "jac_targets"},
+  };
+
+  wsm_data["surf_spectral_fieldFromModelState"] = {
+      .desc   = R"--(Sets *surf_spectral_field* to the state of the model.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"surf_spectral_field"},
+      .in     = {"surf_spectral_field", "model_state_vec", "model_state_targets"},
+  };
+
+  wsm_data["model_state_vecFromSurfaceSpectral"] = {
+      .desc   = R"--(Sets *model_state_vec*'s part of *surf_spectral_field*.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vec"},
+      .in     = {"model_state_vec", "surf_spectral_field", "jac_targets"},
+  };
+
+  wsm_data["subsurf_spectral_fieldFromModelState"] = {
+      .desc   = R"--(Sets *subsurf_spectral_field* to the state of the model.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"subsurf_spectral_field"},
+      .in     = {"subsurf_spectral_field", "model_state_vec", "model_state_targets"},
+  };
+
+  wsm_data["model_state_vecFromSubsurfaceSpectral"] = {
+      .desc   = R"--(Sets *model_state_vec*'s part of *subsurf_spectral_field*.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vec"},
+      .in     = {"model_state_vec", "subsurf_spectral_field", "jac_targets"},
   };
 
   wsm_data["abs_bandsFromModelState"] = {
@@ -5338,8 +5470,24 @@ calculation is performed. Use this before preparing the next measurement's
 retrieval from the same physical prior.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"abs_bands", "surf_field", "subsurf_field", "atm_field", "measurement_sensors"},
-      .in     = {"oem", "abs_bands", "surf_field", "subsurf_field", "atm_field", "measurement_sensors", "jac_targets"},
+      .out    = {"abs_bands",
+                 "surf_field",
+                 "surf_spectral_field",
+                 "subsurf_field",
+                 "subsurf_spectral_field",
+                 "atm_field",
+                 "atm_spectral_field",
+                 "measurement_sensors"},
+      .in     = {"oem",
+                 "abs_bands",
+                 "surf_field",
+                 "surf_spectral_field",
+                 "subsurf_field",
+                 "subsurf_spectral_field",
+                 "atm_field",
+                 "atm_spectral_field",
+                 "measurement_sensors",
+                 "jac_targets"},
   };
   wsm_data["oemClearAuxiliary"] = {
       .desc = "Release recomputable products and caches in oem; retain inputs, current state, bases and diagnostics.\n",
@@ -5940,11 +6088,11 @@ Supply observations with *oemSetMeasurement* before calling this method.
       .gin_desc  = {"The value of the covariance matrix diagonal"},
   };
 
-  wsm_data["scat_speciesInit"] = {
+  wsm_data["atm_scat_speciesInit"] = {
       .desc   = R"(Initialize scattering species.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"scat_species"},
+      .out    = {"atm_scat_species"},
   };
 
   wsm_data["disort_settingsDownwellingObserver"] = {
@@ -6066,6 +6214,213 @@ A description of the options is given below.
     };
   }
   wsm_data["vdisort_settings_agendaSetup"] = vdisort_method("disort_settings_agendaSetup");
+
+  wsm_data["vdisort_settingsSubsurfaceInit"] = {
+      .desc   = R"--(Initialize *vdisort_settings* for the subsurface along *ray_path*.
+
+VDISORT reflects only at its surface, so the subsurface is solved upside down.
+*ray_path* starts at the interface to the space above and descends.  VDISORT's
+top is its deepest point, and VDISORT's surface is the interface, which then
+reflects back into the subsurface, while the sky enters through it as the
+radiance beneath VDISORT's surface.  The altitude grid of the settings is the
+depth below the interface, deepest first.
+
+The radiances within the subsurface are those divided by the square of its
+real refractive index.  A flat interface transmits these with one minus its
+reflectance, and the sources within are the Planck radiances themselves.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"vdisort_settings"},
+      .in =
+          {"freq_grid", "ray_path", "quadrature_dimension", "legendre_polynomial_dimension", "fourier_mode_dimension"},
+  };
+
+  wsm_data["vdisort_settingsSubsurfaceOpticalThickness"] = {
+      .desc      = R"--(Sets the optical thickness of the upside-down subsurface from its absorption.
+
+The absorption coefficient is :math:`4\pi f \mathrm{Im}(n)/c`, with the complex
+refractive index :math:`n = \sqrt{n'^2 (1 + i \tan\delta)}` of the
+"refractive index" :math:`n'` and "loss tangent" :math:`\tan\delta` of
+*subsurf_spectral_field* at the points of *ray_path*.  Each layer has the mean
+of its two points times its thickness.
+
+See *vdisort_settingsSubsurfaceInit* for the upside-down column.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"vdisort_settings"},
+      .in        = {"vdisort_settings", "ray_path", "surf_field", "subsurf_spectral_field"},
+      .gin       = {"min_optical_depth"},
+      .gin_type  = {"Numeric"},
+      .gin_value = {Numeric{1e-11}},
+      .gin_desc =
+          {"The minimum increase in optical thickness per level.  The DISORT algorithm employed is numerically unstable if the change between levels is too small."},
+  };
+
+  wsm_data["vdisort_settingsSubsurfaceScatteringSpecies"] = {
+      .desc   = R"--(Adds the scattering of *subsurf_scat_species* to the upside-down subsurface.
+
+The species are evaluated at the points of *subsurf_profile* and the spectral
+points of *subsurf_spectral_field* along *ray_path*, as totally randomly
+oriented particles.  Each layer adds the mean extinction of its two points
+times its thickness to its optical thickness, and its single scattering albedo
+is the extinction the species do not absorb over the whole optical thickness.
+Its Legendre coefficients are the mean of the two points, normalized so that
+F11 is 1 at degree 0.
+
+Set the optical thickness of the absorption first, and the emission after.
+See *vdisort_settingsSubsurfaceInit* for the upside-down column.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"vdisort_settings"},
+      .in     = {"vdisort_settings",
+                 "ray_path",
+                 "subsurf_profile",
+                 "surf_field",
+                 "subsurf_spectral_field",
+                 "subsurf_scat_species"},
+  };
+
+  wsm_data["vdisort_settingsSubsurfaceLayerThermalEmissionLinearInTau"] = {
+      .desc   = R"--(Use a source function of the upside-down subsurface that changes linearly in optical thickness.
+
+The source at each point is the Planck radiance at the temperature of
+*subsurf_profile*.  Set the optical thickness first.
+
+See *vdisort_settingsSubsurfaceInit* for the upside-down column.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"vdisort_settings"},
+      .in     = {"vdisort_settings", "subsurf_profile", "freq_grid"},
+  };
+
+  wsm_data["vdisort_settingsSubsurfaceDeepEmissionByTemperature"] = {
+      .desc =
+          R"--(The radiation from below the deepest level of the subsurface is the Planck radiance at its temperature.
+
+The deepest level is the top of the upside-down column, see
+*vdisort_settingsSubsurfaceInit*.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"vdisort_settings"},
+      .in     = {"vdisort_settings", "freq_grid", "subsurf_profile"},
+  };
+
+  wsm_data["vdisort_settingsSubsurfaceInterfaceFresnel"] = {
+      .desc   = R"--(The interface reflects radiation back into the subsurface by Fresnel's equations.
+
+The interface is the surface of the upside-down column, see
+*vdisort_settingsSubsurfaceInit*.  Seen from within, the space above has the
+index :math:`1/\mathrm{Re}(n)`, with :math:`n` the complex refractive index of
+*subsurf_spectral_field* at the first point of *ray_path*, see
+*vdisort_settingsSubsurfaceOpticalThickness*.  The absorption of the subsurface
+is in its optical thickness, so the interface is that of the real index.
+
+Set the sun first.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"vdisort_settings"},
+      .in     = {"vdisort_settings", "ray_path", "surf_field", "subsurf_spectral_field"},
+  };
+
+  wsm_data["vdisort_settingsSubsurfaceIsotropicSky"] = {
+      .desc      = R"--(Isotropic blackbody radiation of the sky enters the subsurface through the interface.
+
+The sky is the radiance beneath the surface of the upside-down column, see
+*vdisort_settingsSubsurfaceInit*, which VDISORT transmits with one minus the
+reflectance of the interface.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"vdisort_settings"},
+      .in        = {"vdisort_settings", "freq_grid"},
+      .gin       = {"sky_temperature"},
+      .gin_type  = {"Numeric"},
+      .gin_value = {Numeric{Constant::cosmic_microwave_background_temperature}},
+      .gin_desc  = {"The temperature of the sky [K]"},
+  };
+
+  wsm_data["subsurf_vdisort_settings_agendaSetup"] = {
+      .desc      = R"--(Setup for VDISORT subsurface calculations.
+
+This method allows setting up *subsurf_vdisort_settings_agenda* by named
+options.  The optical thickness of the absorption is always that of
+*vdisort_settingsSubsurfaceOpticalThickness*; every other step can be left out
+with its "None" option.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"subsurf_vdisort_settings_agenda"},
+      .gin       = {"scattering_setting",
+                    "layer_emission_setting",
+                    "deep_setting",
+                    "interface_setting",
+                    "sky_setting",
+                    "sky_temperature",
+                    "min_optical_depth"},
+      .gin_type  = {"String", "String", "String", "String", "String", "Numeric", "Numeric"},
+      .gin_value = {String{"None"},
+                    String{"LinearInTau"},
+                    String{"Thermal"},
+                    String{"Fresnel"},
+                    String{"Isotropic"},
+                    Numeric{Constant::cosmic_microwave_background_temperature},
+                    Numeric{1e-11}},
+      .gin_desc =
+          {"Scattering settings, see *settings_agenda_setup_scattering_type*",
+           "Layer emission settings, see *settings_agenda_setup_layer_emission_type*",
+           "Settings of the radiation from below the deepest level, see *subsurf_settings_agenda_setup_deep_type*",
+           "Interface settings, see *subsurf_settings_agenda_setup_interface_type*",
+           "Sky settings, see *subsurf_settings_agenda_setup_sky_type*",
+           "The temperature of the isotropic sky [K]",
+           "The minimum increase in optical thickness per level"},
+  };
+
+  wsm_data["spectral_radSubsurfaceVDisort"] = {
+      .desc           = R"--(The radiance that leaves the subsurface along *ray_point*, by VDISORT.
+
+The facet at *ray_point* has the normal of *surf_field*, so it is tilted by
+the slopes of the elevation.  The outgoing ray has the zenith angle
+:math:`\theta` from the facet normal, and within the subsurface the refracted
+angle :math:`\theta'` with :math:`\sin\theta = \mathrm{Re}(n)\sin\theta'`, with
+:math:`n` the complex refractive index at the interface (see
+*vdisort_settingsSubsurfaceOpticalThickness*).
+
+The radiance is the sum of two parts, each in the facet's basis (p, s) with
+s across the plane of incidence:
+
+1. The radiance within the subsurface that propagates towards the interface at
+   :math:`\theta'`, transmitted with one minus the Fresnel reflectance of each
+   polarization.  It is VDISORT's along a path into the subsurface from
+   *ray_point* through the depths of ``depth_profile``, set up by
+   *subsurf_vdisort_settings_agenda* (see *vdisort_settingsSubsurfaceInit*).
+2. The radiance of *spectral_rad_observer_agenda* along the specular direction
+   of the facet, reflected by the Fresnel reflectance.  This is the sky, with
+   the sun when it is in that direction.
+
+The sum is rotated into the basis of the outgoing ray.
+
+The derivatives are those of the reflected radiance by the targets of
+*spectral_rad_observer_agenda*.  Derivatives by surface, subsurface and
+spectral subsurface targets are not implemented.
+)--",
+      .author         = {"Richard Larsson"},
+      .out            = {"spectral_rad", "spectral_rad_jac"},
+      .in             = {"freq_grid",
+                         "atm_field",
+                         "surf_field",
+                         "subsurf_field",
+                         "subsurf_spectral_field",
+                         "jac_targets",
+                         "ray_point",
+                         "quadrature_dimension",
+                         "fourier_mode_dimension",
+                         "legendre_polynomial_dimension",
+                         "spectral_rad_observer_agenda",
+                         "subsurf_vdisort_settings_agenda"},
+      .gin            = {"depth_profile"},
+      .gin_type       = {"DescendingGrid"},
+      .gin_value      = {std::nullopt},
+      .gin_desc       = {"The depths of the path into the subsurface, relative to *ray_point* [m]"},
+      .pass_workspace = true,
+  };
 
   {
     const auto& other                                 = wsm_data.at("disort_settingsSubsurfaceScalarAbsorption");
@@ -6623,7 +6978,7 @@ supplying an already constructed numerical problem without resetting targets.
   };
 
   wsm_data["oemFinalizeDiagonal"] = {
-      .desc   = R"(Finalize the retrieval setup.
+      .desc             = R"(Finalize the retrieval setup.
 
 Calls *jac_targetsFinalize* to determine target sizes and state-vector offsets,
 then adds the per-target covariance blocks collected in oem.covmat_diagonal_blocks by the oemAdd methods.
@@ -6638,9 +6993,18 @@ If target offsets are needed to calculate the prior or a forward model before
 this step, call *jac_targetsFinalize* first. This only finalizes the mapping;
 *oemFinalizeDiagonal* completes and checks the numerical retrieval setup.
 )",
-      .author = {"Richard Larsson"},
-      .out    = {"oem", "jac_targets"},
-      .in     = {"oem", "jac_targets", "atm_field", "surf_field", "subsurf_field", "abs_bands", "measurement_sensors"},
+      .author           = {"Richard Larsson"},
+      .out              = {"oem", "jac_targets"},
+      .in               = {"oem",
+                           "jac_targets",
+                           "atm_field",
+                           "atm_spectral_field",
+                           "surf_field",
+                           "surf_spectral_field",
+                           "subsurf_field",
+                           "subsurf_spectral_field",
+                           "abs_bands",
+                           "measurement_sensors"},
       .size_constraints = false,
   };
 
@@ -6963,8 +7327,9 @@ added without changing the interface.
       .author         = {"Richard Larsson", "OpenAI Codex"},
       .out            = {"radar_signal", "radar_error", "radar_time"},
       .in             = {"atm_field",
+                         "atm_spectral_field",
                          "surf_field",
-                         "scat_species",
+                         "atm_scat_species",
                          "mc_antenna",
                          "ray_path_observer_agenda",
                          "spectral_propmat_agenda",
@@ -7090,7 +7455,7 @@ complete range-gated calculation, including gas and particle attenuation and
 particle backscatter.  The perturbation stored on each target is used; a
 scale-aware default is selected when it is zero.  Gas propagation derivatives
 come from *spectral_propmat_agenda*, scattering derivatives come from
-*scat_species*, and their ordered two-way transmission product is propagated
+*atm_scat_species*, and their ordered two-way transmission product is propagated
 analytically through rtepack.  There is no production finite-difference loop.
 
 The auxiliary quantities are listed by *RadarAuxiliary*.  They are returned
@@ -7107,8 +7472,9 @@ and V selectors.
                    "radar_range_limits",
                    "jac_targets",
                    "atm_field",
+                   "atm_spectral_field",
                    "surf_field",
-                   "scat_species",
+                   "atm_scat_species",
                    "ray_path_observer_agenda",
                    "spectral_propmat_agenda",
                    "rte_option"},
@@ -7141,7 +7507,7 @@ and V selectors.
   };
 
   wsm_data["model_state_vecFromRadarOnionPeeling"] = {
-      .desc           = R"--(Retrieve an atmospheric radar profile by analytical onion peeling.
+      .desc      = R"--(Retrieve an atmospheric radar profile by analytical onion peeling.
 
 Range gates are processed from the sensor outwards.  At each gate, the
 strongest not-yet-peeled atmospheric state coordinate is updated by a bounded
@@ -7153,7 +7519,7 @@ standard radar forward model.
 
 Unlike the ARTS2 implementation, this method does not create or consume a
 large dBZe/temperature inversion table.  Scattering properties are evaluated
-directly through *scat_species*.  *jac_targets* defines the retrieved state,
+directly through *atm_scat_species*.  *jac_targets* defines the retrieved state,
 including its grids and transformations.  All targets must currently be
 atmospheric targets.  The returned *model_state_vec*, updated *atm_field*,
 *measurement_vec_fit*, and *measurement_jac* are mutually consistent and can
@@ -7167,73 +7533,73 @@ This formulation is not restricted to the old two-species liquid/ice layout;
 phase selection may instead be expressed by the scattering-species properties
 and atmospheric state chosen by the caller.
               )--",
-      .author         = {"Patrick Eriksson", "OpenAI Codex"},
-      .out            = {"model_state_vec", "measurement_vec_fit", "measurement_jac", "atm_field"},
-      .in             = {"measurement_vec",
-                         "measurement_sensors",
-                         "radar_range_limits",
-                         "jac_targets",
-                         "surf_field",
-                         "scat_species",
-                         "ray_path_observer_agenda",
-                         "spectral_propmat_agenda",
-                         "rte_option"},
-      .gin            = {"transmitted_stokes",
-                         "range_mode",
-                         "unit",
-                         "ze_tref",
-                         "k2",
-                         "dbze_min",
-                         "pext_scaling",
-                         "measurement_noise_floor",
-                         "state_min",
-                         "state_max",
-                         "max_step",
-                         "tolerance",
-                         "max_iterations",
-                         "max_sweeps"},
-      .gin_type       = {"Stokvec",
-                         "RadarRangeMode",
-                         "RadarUnit",
-                         "Numeric",
-                         "Numeric",
-                         "Numeric",
-                         "Numeric",
-                         "Numeric",
-                         "Numeric",
-                         "Numeric",
-                         "Numeric",
-                         "Numeric",
-                         "Index",
-                         "Index"},
-      .gin_value      = {Stokvec{1.0, 1.0, 0.0, 0.0},
-                         RadarRangeMode::Legacy,
-                         RadarUnit::unit,
-                         Numeric{273.15},
-                         Numeric{-1.0},
-                         Numeric{-99.0},
-                         Numeric{1.0},
-                         Numeric{-1e99},
-                         Numeric{0.0},
-                         Numeric{1e99},
-                         Numeric{1e99},
-                         Numeric{1e-6},
-                         Index{12},
-                         Index{8}},
-      .gin_desc       = {"Transmitted Stokes vector; its I component must equal one.",
-                         "Range coordinate: Altitude, Distance, RoundTripTime, or Legacy.",
-                         "Forward and observation unit: 1, Ze, or dBZe.",
-                         "Liquid-water reference temperature [K] for automatic k2.",
-                         "Reference dielectric factor squared; negative selects Liebe-93.",
-                         "Lower clipping value for dBZe.",
-                         "Multiplicative factor for particulate extinction (0 to 2).",
-                         "Measurements at or below this value are ignored.",
-                         "Lower bound in model-state coordinates.",
-                         "Upper bound in model-state coordinates.",
-                         "Maximum absolute Newton step in model-state coordinates.",
-                         "Relative gate-fit convergence tolerance.",
-                         "Maximum Newton iterations per gate.",
-                         "Maximum repeated outward sweeps for interpolating state grids."},
+      .author    = {"Patrick Eriksson", "OpenAI Codex"},
+      .out       = {"model_state_vec", "measurement_vec_fit", "measurement_jac", "atm_field", "atm_spectral_field"},
+      .in        = {"measurement_vec",
+                    "measurement_sensors",
+                    "radar_range_limits",
+                    "jac_targets",
+                    "surf_field",
+                    "atm_scat_species",
+                    "ray_path_observer_agenda",
+                    "spectral_propmat_agenda",
+                    "rte_option"},
+      .gin       = {"transmitted_stokes",
+                    "range_mode",
+                    "unit",
+                    "ze_tref",
+                    "k2",
+                    "dbze_min",
+                    "pext_scaling",
+                    "measurement_noise_floor",
+                    "state_min",
+                    "state_max",
+                    "max_step",
+                    "tolerance",
+                    "max_iterations",
+                    "max_sweeps"},
+      .gin_type  = {"Stokvec",
+                    "RadarRangeMode",
+                    "RadarUnit",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "Index",
+                    "Index"},
+      .gin_value = {Stokvec{1.0, 1.0, 0.0, 0.0},
+                    RadarRangeMode::Legacy,
+                    RadarUnit::unit,
+                    Numeric{273.15},
+                    Numeric{-1.0},
+                    Numeric{-99.0},
+                    Numeric{1.0},
+                    Numeric{-1e99},
+                    Numeric{0.0},
+                    Numeric{1e99},
+                    Numeric{1e99},
+                    Numeric{1e-6},
+                    Index{12},
+                    Index{8}},
+      .gin_desc  = {"Transmitted Stokes vector; its I component must equal one.",
+                    "Range coordinate: Altitude, Distance, RoundTripTime, or Legacy.",
+                    "Forward and observation unit: 1, Ze, or dBZe.",
+                    "Liquid-water reference temperature [K] for automatic k2.",
+                    "Reference dielectric factor squared; negative selects Liebe-93.",
+                    "Lower clipping value for dBZe.",
+                    "Multiplicative factor for particulate extinction (0 to 2).",
+                    "Measurements at or below this value are ignored.",
+                    "Lower bound in model-state coordinates.",
+                    "Upper bound in model-state coordinates.",
+                    "Maximum absolute Newton step in model-state coordinates.",
+                    "Relative gate-fit convergence tolerance.",
+                    "Maximum Newton iterations per gate.",
+                    "Maximum repeated outward sweeps for interpolating state grids."},
       .pass_workspace = true,
   };
 
@@ -7249,9 +7615,10 @@ rotations.  Scattering directions use uniform solid-angle importance sampling.
       .author         = {"Cory Davis", "Patrick Eriksson", "OpenAI Codex"},
       .out            = {"mc_spectral_rad", "mc_error", "mc_iteration_count"},
       .in             = {"atm_field",
+                         "atm_spectral_field",
                          "surf_field",
                          "subsurf_field",
-                         "scat_species",
+                         "atm_scat_species",
                          "mc_antenna",
                          "ray_path_observer_agenda",
                          "spectral_propmat_agenda",
@@ -7310,9 +7677,10 @@ source derivatives, without modifying global catalogue state.
                          "obs_pos",
                          "obs_los",
                          "atm_field",
+                         "atm_spectral_field",
                          "surf_field",
                          "subsurf_field",
-                         "scat_species",
+                         "atm_scat_species",
                          "ray_path_observer_agenda",
                          "spectral_propmat_agenda",
                          "spectral_rad_space_agenda",

@@ -81,29 +81,31 @@ plt.ylabel("Spectral radiance [W sr$^{-1}$ m$^{-2}$ Hz$^{-1}$]")
 plt.xlabel("Dirac frequency [GHz]")
 plt.title("Downlooking")
 
+pressure = pyarts.arts.AtmData(ws.atm_field["p"])
+
 for manual in [False, True]:
     for EXT in [1e-4]:
         for SSA in [0.01]:
             for g in [0.9]:
                 print(EXT, SSA, g)
-                hspec = pyarts.arts.HenyeyGreensteinScatterer(
-                    lambda f, atm: (
-                        np.array([EXT, SSA])
-                        if atm.pressure > 1e4 and atm.pressure < 9e4
-                        else [0, 0]
-                    ),
-                    g,
+                ws.atm_spectral_field["extinction"] = lambda f, alt, lat, lon: (
+                    EXT if 1e4 < pressure(alt, lat, lon) < 9e4 else 0.0
                 )
+                ws.atm_spectral_field["ssa"] = lambda f, alt, lat, lon: (
+                    SSA if 1e4 < pressure(alt, lat, lon) < 9e4 else 0.0
+                )
+                ws.atm_spectral_field["g"] = g
+                hspec = pyarts.arts.HenyeyGreensteinScatterer("extinction", "ssa", "g")
 
                 if manual:
-                    ws.scat_species = [hspec]
+                    ws.atm_scat_species = [hspec]
                 else:
-                    def python_func(atm, f, index):
-                        return hspec.get_bulk_scattering_properties_tro_spectral(
-                            atm, f, index
+                    def python_func(atm, spectral, f, index):
+                        return hspec.tro_spectral(
+                            atm, spectral, f, index
                         )
 
-                    ws.scat_species = [
+                    ws.atm_scat_species = [
                         pyarts.arts.ScatteringGeneralSpectralTRO(python_func)
                     ]
 

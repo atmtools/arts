@@ -4,12 +4,15 @@
 
 #include <memory>
 
-ScatteringTroSpectralVector ScatteringGeneralSpectralTRO::get_bulk_scattering_properties_tro_spectral(
-    const AtmPoint& atm_point, const Vector& f_grid, Index degree) const {
+ScatteringTroSpectralVector ScatteringGeneralSpectralTRO::tro_spectral(
+    const scattering::MediumPoint&         point,
+    const scattering::SpectralMediumPoint& spectral_point,
+    const Vector&                          f_grid,
+    Index                                  degree) const {
   if (degree < 0) arts::user_error("The Legendre degree must be >= 0, got {}", degree);
 
   // The user's function must give exactly what was asked
-  auto        out = f(atm_point, f_grid, degree);
+  auto        out = f(point, spectral_point, f_grid, degree);
   const Index nf  = static_cast<Index>(f_grid.size());
   if (not out.phase_matrix.has_value())
     arts::user_error("The user's scattering function gives no phase matrix; it must give its Legendre series");
@@ -32,19 +35,19 @@ ScatteringTroSpectralVector ScatteringGeneralSpectralTRO::get_bulk_scattering_pr
 }
 
 scattering::BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Fourier>
-ScatteringGeneralSpectralTRO::get_bulk_scattering_properties_aro_fourier(const AtmPoint& atm_point,
-                                                                         const Vector&   f_grid,
-                                                                         const Vector&   za_inc_grid,
-                                                                         const Vector&   za_scat_grid,
-                                                                         Index           max_mode) const {
+ScatteringGeneralSpectralTRO::aro_fourier(const scattering::MediumPoint&         point,
+                                          const scattering::SpectralMediumPoint& spectral_point,
+                                          const Vector&                          f_grid,
+                                          const Vector&                          za_inc_grid,
+                                          const Vector&                          za_scat_grid,
+                                          Index                                  max_mode) const {
   if (degree < 0)
     arts::user_error(
         "The azimuthal Fourier modes of a user's scattering function need the degree of its Legendre "
         "series; set degree (>= 0) on the ScatteringGeneralSpectralTRO, it is {}",
         degree);
 
-  const auto bulk   = get_bulk_scattering_properties_tro_spectral(atm_point, f_grid, degree)
-                          .to_general(std::make_shared<Vector>(f_grid));
+  const auto bulk   = tro_spectral(point, spectral_point, f_grid, degree).to_general(std::make_shared<Vector>(f_grid));
   const auto za_inc = std::make_shared<const Vector>(za_inc_grid);
   const auto za_scat =
       std::make_shared<const scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(za_scat_grid));

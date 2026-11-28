@@ -62,7 +62,7 @@ def test_polarized_beam_single_scattering():
     atm = arts.AtmPoint()
     atm.pressure = 8e4
     atm.temperature = 260.0
-    optics = vd.scattering_optics(species, atm, 89e9, mu, [-mu0], nfourier)
+    optics = vd.scattering_optics(species, atm, arts.AtmSpectralPoint(), 89e9, mu, [-mu0], nfourier)
     cosine = np.asarray(optics.cosine)[:, None, :, 0]
     sine = np.asarray(optics.sine)[:, None, :, 0]
 

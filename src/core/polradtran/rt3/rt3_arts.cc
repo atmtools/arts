@@ -22,6 +22,7 @@ scattering_set no_scattering(Index degree) {
 
 scattering_set scattering_optics(const ArrayOfScatteringSpecies& scattering_species,
                                  const AtmPoint&                 atm_point,
+                                 const AtmSpectralPoint&         atm_spectral_point,
                                  Numeric                         frequency,
                                  Index                           degree,
                                  Numeric                         normalisation_tolerance) {
@@ -32,8 +33,7 @@ scattering_set scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
 
   if (scattering_species.species.empty()) return no_scattering(degree);
 
-  const auto bulk =
-      scattering_species.get_bulk_scattering_properties_tro_spectral(atm_point, Vector{frequency}, degree);
+  const auto    bulk       = scattering_species.tro_spectral(atm_point, atm_spectral_point, Vector{frequency}, degree);
   const Numeric extinction = bulk.extinction_matrix[0].A();
   const Numeric scattering = extinction - bulk.absorption_vector[0].I();
 
@@ -69,6 +69,7 @@ scattering_set scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
 
 problem problem_from_path(const ArrayOfPropagationPathPoint& ray_path,
                           const ArrayOfAtmPoint&             atm_path,
+                          const AtmSpectralField&            atm_spectral_field,
                           const ArrayOfPropmatVector&        spectral_propmat_path,
                           const AscendingGrid&               freq_grid,
                           Index                              freq_index,
@@ -110,8 +111,15 @@ problem problem_from_path(const ArrayOfPropagationPathPoint& ray_path,
 
   std::vector<scattering_set> level;
   level.reserve(nlev);
-  for (const auto& atm : atm_path)
-    level.push_back(scattering_optics(scattering_species, atm, p.frequency, degree, settings.normalisation_tolerance));
+  for (Index i = 0; i < nlev; i++) {
+    const Vector3& pos = ray_path[i].pos;
+    level.push_back(scattering_optics(scattering_species,
+                                      atm_path[i],
+                                      atm_spectral_field.at(AscendingGrid{p.frequency}, pos[0], pos[1], pos[2]),
+                                      p.frequency,
+                                      degree,
+                                      settings.normalisation_tolerance));
+  }
 
   for (Index l = 0; l < nlay; l++) {
     const auto& a = level[l];

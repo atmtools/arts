@@ -49,8 +49,6 @@ EPS = np.finfo(float).eps
 Z = np.array([8000.0, 7000.0, 6000.0, 4500.0, 3200.0, 2000.0, 1000.0, 0.0])
 GAS = Z < 6500.0
 
-hg_ext = A.ScatteringSpeciesProperty("hg", A.ParticulateProperty.Extinction)
-hg_ssa = A.ScatteringSpeciesProperty("hg", A.ParticulateProperty.SingleScatteringAlbedo)
 drops = A.ScatteringSpeciesProperty("drops", A.ParticulateProperty.NumberDensity)
 
 ATMOSPHERE = {
@@ -58,14 +56,28 @@ ATMOSPHERE = {
     "p": 1e5 * np.exp(-Z / 8000.0),
     "H2O": np.where(GAS, 0.02 * np.exp(-Z / 2000.0), 0.0),
     "O2": np.where(GAS, 0.21, 0.0),
-    hg_ext: 2e-4 * np.exp(-(((Z - 3000.0) / 1000.0) ** 2)),
-    hg_ssa: np.full_like(Z, 0.9),
     drops: 30.0 * np.exp(-(((Z - 2500.0) / 1500.0) ** 2)),
 }
 
+# The spectral profiles of the Henyey-Greenstein scatterer, the same at all frequencies
+HENYEY_GREENSTEIN = {
+    "extinction": 2e-4 * np.exp(-(((Z - 3000.0) / 1000.0) ** 2)),
+    "ssa": np.full_like(Z, 0.9),
+    "g": np.full_like(Z, 0.2),
+}
 
-def workspace(species, gas=True, fields={}):
-    """A workspace with the atmosphere (fields replace its profiles) and a path down through its levels."""
+
+def spectral_profile(values):
+    """A spectral field of a profile on Z, the same at all frequencies."""
+    return A.SpectralGeodeticField4(
+        data=np.asarray(values)[::-1][None, :, None, None],
+        grid_names=["frequency", "altitude", "latitude", "longitude"],
+        grids=[[FREQ[0]], Z[::-1], [0.0], [0.0]],
+    )
+
+
+def workspace(species, gas=True, spectral={}):
+    """A workspace with the atmosphere (spectral replaces its spectral profiles) and a path down through its levels."""
     ws = pa.Workspace()
     ws.freq_grid = FREQ
     ws.abs_speciesSet(species=["H2O-PWR98", "O2-PWR98"] if gas else [])
@@ -75,13 +87,15 @@ def workspace(species, gas=True, fields={}):
     ws.surf_fieldPlanet(option="Earth")
     ws.surf_field[A.SurfaceKey("t")] = T_SURF
     profile = [A.AtmPoint() for _ in Z]
-    for key, values in {**ATMOSPHERE, **fields}.items():
+    for key, values in ATMOSPHERE.items():
         if isinstance(key, str) and key in ("H2O", "O2"):
             key = A.SpeciesEnum(key)
         for point, value in zip(profile, values):
             point[key] = value
     ws.atm_fieldFromProfile(atm_profile=profile[::-1], alt_grid=Z[::-1], altitude_extrapolation="Linear")
-    ws.scat_species = species
+    for key, values in {**HENYEY_GREENSTEIN, **spectral}.items():
+        ws.atm_spectral_field[key] = spectral_profile(values)
+    ws.atm_scat_species = species
     ws.spectral_propmat_scat_spectral_agendaSet(option="FromSpeciesTRO")
 
     path = A.ArrayOfPropagationPathPoint()
@@ -190,9 +204,9 @@ EXTINCTION, ALBEDO, G = 1e-10, 0.9, 0.6
 AZIMUTHS = [0.0, 37.0, 90.0, 140.0, 200.0, 270.0, 315.0]
 
 ws = workspace(
-    [A.HenyeyGreensteinScatterer(hg_ext, hg_ssa, G)],
+    [A.HenyeyGreensteinScatterer("extinction", "ssa", "g")],
     gas=False,
-    fields={hg_ext: np.full_like(Z, EXTINCTION), hg_ssa: np.full_like(Z, ALBEDO)},
+    spectral={"extinction": np.full_like(Z, EXTINCTION), "ssa": np.full_like(Z, ALBEDO), "g": np.full_like(Z, G)},
 )
 sun(ws)
 ws.legendre_polynomial_dimension = LEGENDRE
@@ -262,7 +276,7 @@ def rayleigh():
 
 
 def henyey_greenstein():
-    return A.HenyeyGreensteinScatterer(hg_ext, hg_ssa, 0.2)
+    return A.HenyeyGreensteinScatterer("extinction", "ssa", "g")
 
 
 def mie_drops():
@@ -297,7 +311,8 @@ def against_rt3(name, ws, aziorder, azimuths, ground, thermal, minimum):
         sky = np.asarray(s.downward_boundary_condition)[iv, 0, 0, 0, 0]
         sky_temperature = A.physics.invplanck(sky, f) if sky > 0 else 0.0
         problem = A.rt3.problem_from_path(
-            ws.ray_path, ws.atm_path, [pm.K for pm in ws.spectral_propmat_path], ws.freq_grid, iv, ws.scat_species,
+            ws.ray_path, ws.atm_path, ws.atm_spectral_field, [pm.K for pm in ws.spectral_propmat_path], ws.freq_grid, iv,
+            ws.atm_scat_species,
             settings, ground, T_SURF, sky_temperature,
         )  # fmt: skip
         problem.thermal = thermal

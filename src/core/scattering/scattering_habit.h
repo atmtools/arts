@@ -19,8 +19,15 @@ using PSD = std::variant<MonodispersePSD,
 /*** A scattering habit
  *
  * A scattering habit combines a particle habit with an additional PSD
- * and thus defines a mapping between atmospheric scattering species properties
+ * and thus defines a mapping between scattering species properties
  * and corresponding bulk skattering properties.
+ *
+ * The explicit methods take the temperature [K] and the scattering species
+ * properties that the PSD reads.  The derivatives take their derivatives by
+ * the target as well.  The template wrappers take the point of a medium and
+ * its spectral point, and read the temperature and the properties from the
+ * point.  The habit has no spectral properties, so they do not read the
+ * spectral point.
  */
 class ScatteringHabit {
  public:
@@ -30,19 +37,25 @@ class ScatteringHabit {
                   Numeric              mass_size_rel_a_ = -1.0,
                   Numeric              mass_size_rel_b_ = -1.0);
 
-  [[nodiscard]] BulkScatteringPropertiesTROGridded get_bulk_scattering_properties_tro_gridded(
-      const AtmPoint&, const Vector& f_grid) const;
+  //! The bulk properties on the particles' own scattering angles
+  [[nodiscard]] BulkScatteringPropertiesTROGridded tro_gridded(Numeric                     temperature,
+                                                               const ScatteringSpeciesMap& ssprops,
+                                                               const Vector&               f_grid) const;
 
-  [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Gridded>
-  get_bulk_scattering_properties_tro_gridded(const AtmPoint&                  point,
-                                             const Vector&                    f_grid,
-                                             std::shared_ptr<ZenithAngleGrid> za_scat_grid) const;
+  [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Gridded> tro_gridded(
+      Numeric                          temperature,
+      const ScatteringSpeciesMap&      ssprops,
+      const Vector&                    f_grid,
+      std::shared_ptr<ZenithAngleGrid> za_scat_grid) const;
 
-  [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Gridded>
-  get_bulk_scattering_properties_tro_gridded_derivative(const AtmPoint&,
-                                                        const Vector&,
-                                                        std::shared_ptr<ZenithAngleGrid>,
-                                                        const AtmKeyVal&) const;
+  //! The derivative, from the derivatives of the temperature and of the scattering species properties
+  [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Gridded> tro_gridded_derivative(
+      Numeric                          temperature,
+      const ScatteringSpeciesMap&      ssprops,
+      Numeric                          d_temperature,
+      const ScatteringSpeciesMap&      d_ssprops,
+      const Vector&                    f_grid,
+      std::shared_ptr<ZenithAngleGrid> za_scat_grid) const;
 
   /** The bulk Legendre series to degree at f_grid, summed over the particles
    *
@@ -51,9 +64,10 @@ class ScatteringHabit {
    * coefficient is the scattering-plane Mueller matrix on Y_l0 (see
    * tro_legendre.h).
    */
-  [[nodiscard]] ScatteringTroSpectralVector get_bulk_scattering_properties_tro_spectral(const AtmPoint&,
-                                                                                        const Vector& f_grid,
-                                                                                        const Index   degree) const;
+  [[nodiscard]] ScatteringTroSpectralVector tro_spectral(Numeric                     temperature,
+                                                         const ScatteringSpeciesMap& ssprops,
+                                                         const Vector&               f_grid,
+                                                         const Index                 degree) const;
 
   /** The azimuthal Fourier modes m = 0..max_mode of the laboratory-frame bulk phase matrix at the zenith angles [deg]
    *
@@ -62,38 +76,155 @@ class ScatteringHabit {
    * zenith grids.  Gridded TRO data must be converted to a Legendre series
    * first.
    */
-  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Fourier>
-  get_bulk_scattering_properties_aro_fourier(const AtmPoint&,
-                                             const Vector& f_grid,
-                                             const Vector& za_inc_grid,
-                                             const Vector& za_scat_grid,
-                                             Index         max_mode) const;
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Fourier> aro_fourier(
+      Numeric                     temperature,
+      const ScatteringSpeciesMap& ssprops,
+      const Vector&               f_grid,
+      const Vector&               za_inc_grid,
+      const Vector&               za_scat_grid,
+      Index                       max_mode) const;
 
-  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded>
-  get_bulk_scattering_properties_aro_gridded(const AtmPoint&                  point,
-                                             const Vector&                    f_grid,
-                                             const Vector&                    za_inc_grid,
-                                             const Vector&                    delta_aa_grid,
-                                             std::shared_ptr<ZenithAngleGrid> za_scat_grid) const;
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded> aro_gridded(
+      Numeric                          temperature,
+      const ScatteringSpeciesMap&      ssprops,
+      const Vector&                    f_grid,
+      const Vector&                    za_inc_grid,
+      const Vector&                    delta_aa_grid,
+      std::shared_ptr<ZenithAngleGrid> za_scat_grid) const;
 
-  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded>
-  get_bulk_scattering_properties_aro_gridded_derivative(const AtmPoint&,
-                                                        const Vector&,
-                                                        const Vector&,
-                                                        const Vector&,
-                                                        std::shared_ptr<ZenithAngleGrid>,
-                                                        const AtmKeyVal&) const;
+  //! The derivative, from the derivatives of the temperature and of the scattering species properties
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded> aro_gridded_derivative(
+      Numeric                          temperature,
+      const ScatteringSpeciesMap&      ssprops,
+      Numeric                          d_temperature,
+      const ScatteringSpeciesMap&      d_ssprops,
+      const Vector&                    f_grid,
+      const Vector&                    za_inc_grid,
+      const Vector&                    delta_aa_grid,
+      std::shared_ptr<ZenithAngleGrid> za_scat_grid) const;
 
-  //  BulkScatteringProperties<Format::TRO, Representation::Gridded>
-  //  get_bulk_scattering_properties_tro_spectral(
-  //      const AtmPoint&,
-  //      const Vector& f_grid,
-  //      Index l) const;
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] BulkScatteringPropertiesTROGridded tro_gridded(const Point& point,
+                                                               const SpectralPoint&,
+                                                               const Vector& f_grid) const {
+    return tro_gridded(point.temperature, scattering_species_properties(point), f_grid);
+  }
+
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Gridded> tro_gridded(
+      const Point& point,
+      const SpectralPoint&,
+      const Vector&                    f_grid,
+      std::shared_ptr<ZenithAngleGrid> za_scat_grid) const {
+    return tro_gridded(point.temperature, scattering_species_properties(point), f_grid, std::move(za_scat_grid));
+  }
+
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Gridded> tro_gridded_derivative(
+      const Point& point,
+      const SpectralPoint&,
+      const Vector&                    f_grid,
+      std::shared_ptr<ZenithAngleGrid> za_scat_grid,
+      const medium_key<Point>&         target) const {
+    return tro_gridded_derivative(point.temperature,
+                                  scattering_species_properties(point),
+                                  temperature_derivative(target),
+                                  scattering_species_property_derivatives(target),
+                                  f_grid,
+                                  std::move(za_scat_grid));
+  }
+
+  //! The habit reads no spectral property, so its derivative by one is zero
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Gridded> tro_gridded_derivative(
+      const Point& point,
+      const SpectralPoint&,
+      const Vector&                    f_grid,
+      std::shared_ptr<ZenithAngleGrid> za_scat_grid,
+      const spectral_medium_key<Point>&) const {
+    return tro_gridded_derivative(
+        point.temperature, scattering_species_properties(point), 0.0, {}, f_grid, std::move(za_scat_grid));
+  }
+
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] ScatteringTroSpectralVector tro_spectral(const Point& point,
+                                                         const SpectralPoint&,
+                                                         const Vector& f_grid,
+                                                         const Index   degree) const {
+    return tro_spectral(point.temperature, scattering_species_properties(point), f_grid, degree);
+  }
+
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Fourier> aro_fourier(const Point& point,
+                                                                                           const SpectralPoint&,
+                                                                                           const Vector& f_grid,
+                                                                                           const Vector& za_inc_grid,
+                                                                                           const Vector& za_scat_grid,
+                                                                                           Index max_mode) const {
+    return aro_fourier(
+        point.temperature, scattering_species_properties(point), f_grid, za_inc_grid, za_scat_grid, max_mode);
+  }
+
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded> aro_gridded(
+      const Point& point,
+      const SpectralPoint&,
+      const Vector&                    f_grid,
+      const Vector&                    za_inc_grid,
+      const Vector&                    delta_aa_grid,
+      std::shared_ptr<ZenithAngleGrid> za_scat_grid) const {
+    return aro_gridded(point.temperature,
+                       scattering_species_properties(point),
+                       f_grid,
+                       za_inc_grid,
+                       delta_aa_grid,
+                       std::move(za_scat_grid));
+  }
+
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded> aro_gridded_derivative(
+      const Point& point,
+      const SpectralPoint&,
+      const Vector&                    f_grid,
+      const Vector&                    za_inc_grid,
+      const Vector&                    delta_aa_grid,
+      std::shared_ptr<ZenithAngleGrid> za_scat_grid,
+      const medium_key<Point>&         target) const {
+    return aro_gridded_derivative(point.temperature,
+                                  scattering_species_properties(point),
+                                  temperature_derivative(target),
+                                  scattering_species_property_derivatives(target),
+                                  f_grid,
+                                  za_inc_grid,
+                                  delta_aa_grid,
+                                  std::move(za_scat_grid));
+  }
+
+  //! The habit reads no spectral property, so its derivative by one is zero
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded> aro_gridded_derivative(
+      const Point& point,
+      const SpectralPoint&,
+      const Vector&                    f_grid,
+      const Vector&                    za_inc_grid,
+      const Vector&                    delta_aa_grid,
+      std::shared_ptr<ZenithAngleGrid> za_scat_grid,
+      const spectral_medium_key<Point>&) const {
+    return aro_gridded_derivative(point.temperature,
+                                  scattering_species_properties(point),
+                                  0.0,
+                                  {},
+                                  f_grid,
+                                  za_inc_grid,
+                                  delta_aa_grid,
+                                  std::move(za_scat_grid));
+  }
 
  private:
-  //! The number density [m^-3] each particle stands for at point (see scattering::number_densities)
-  [[nodiscard]] Vector  number_densities(const AtmPoint& point) const;
-  [[nodiscard]] PSDData number_densities_with_derivatives(const AtmPoint& point) const;
+  //! The number density [m^-3] each particle stands for (see scattering::number_densities)
+  [[nodiscard]] Vector  number_densities(Numeric temperature, const ScatteringSpeciesMap& ssprops) const;
+  [[nodiscard]] PSDData number_densities_with_derivatives(Numeric                     temperature,
+                                                          const ScatteringSpeciesMap& ssprops) const;
 
   ParticleHabit particle_habit;
   Numeric       mass_size_rel_a, mass_size_rel_b;

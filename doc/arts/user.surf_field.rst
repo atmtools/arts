@@ -304,3 +304,40 @@ Extrapolation rules are not relevant for this data type as it is a function.
   Any kind of python function-like object can be used as
   a :class:`~pyarts3.arts.NumericBinaryOperator`.  It must simply take two floats and return another float.
   If you want to pass in a custom class all you need is to define ``__call__(self, lat, lon)`` for it.
+
+The spectral surface field
+**************************
+
+Some properties depend on frequency as well as position.  They are held in a field of their own,
+:class:`~pyarts3.arts.SurfaceSpectralField`, of which the workspace has :attr:`~pyarts3.workspace.Workspace.surf_spectral_field`.
+It maps names, :class:`~pyarts3.arts.SurfaceSpectralPropertyTag`, to :class:`~pyarts3.arts.SurfaceSpectralData`.
+The names are free-form; the methods and models that use a property name it.
+
+A property is one of these data types:
+
+- :class:`~pyarts3.arts.Numeric`: the same at all frequencies and positions.
+- :class:`~pyarts3.arts.SpectralGeodeticField3`: data on grids of frequency [Hz], geodetic latitude, and longitude, in that order.
+  It is interpolated linearly in all dimensions, or, with ``log_interpolation``, its logarithm is.
+  Outside a grid, the extrapolation of that side of that dimension applies
+  (``frq_upp``, ``frq_low``, ``lat_upp``, ``lat_low``, ``lon_upp`` and ``lon_low``); by default it is an error, except for grids of a single value, which are used as they are.
+- :class:`~pyarts3.arts.NumericTernaryOperator`: a function of frequency, geodetic latitude, and longitude.
+
+Called with a frequency grid and a position, ``surf_spectral_field(freq_grid, lat, lon)`` gives a :class:`~pyarts3.arts.SurfaceSpectralPoint`:
+every property as a vector on the frequency grid.  Methods evaluate the field like this at each position they use,
+on the frequencies they compute.
+
+.. code-block:: python
+
+  import numpy as np
+  import pyarts3 as pyarts
+
+  surf_spectral_field = pyarts.arts.SurfaceSpectralField()
+  surf_spectral_field["depolarization factor"] = pyarts.arts.SpectralGeodeticField3(
+      data=np.array([[[0.1]], [[0.2]]]),
+      grid_names=["frequency", "latitude", "longitude"],
+      grids=[[280e9, 490e9], [0.0], [0.0]],
+  )
+  surf_spectral_point = surf_spectral_field([280e9, 490e9], 10.0, 20.0)
+  surf_spectral_point["depolarization factor"]  # [0.1, 0.2]
+
+Properties of the spectral field can be retrieved, see :doc:`user.oem`.

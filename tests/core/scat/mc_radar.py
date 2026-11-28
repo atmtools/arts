@@ -23,22 +23,24 @@ ws.ray_path_observer_agendaSetGeometric(
 
 # A horizontally homogeneous, isotropic cloud.  Extinction is deliberately
 # small enough that both the cloud top and bottom remain visible.
-extinction = A.ScatteringSpeciesProperty(
-    "cloud", A.ParticulateProperty.Extinction
-)
-ssa = A.ScatteringSpeciesProperty(
-    "cloud", A.ParticulateProperty.SingleScatteringAlbedo
-)
 grids = ws.atm_field["t"].data.grids
 altitude = np.asarray(grids[0])
 cloud = (altitude >= 5e3) & (altitude <= 15e3)
-ws.atm_field[extinction] = A.GriddedField3(
-    data=np.where(cloud, 1e-4, 0.0)[:, None, None], grids=grids
-)
-ws.atm_field[ssa] = A.GriddedField3(
-    data=np.where(cloud, 0.8, 0.0)[:, None, None], grids=grids
-)
-ws.scat_species = [A.HenyeyGreensteinScatterer(extinction, ssa, 0.0)]
+
+
+def spectral(values):
+    """A spectral field of values on the altitude grid, the same at all frequencies"""
+    return A.SpectralGeodeticField4(
+        data=values[None, :, None, None],
+        grid_names=["frequency", "altitude", "latitude", "longitude"],
+        grids=[[94e9], *grids],
+    )
+
+
+ws.atm_spectral_field["extinction"] = spectral(np.where(cloud, 1e-4, 0.0))
+ws.atm_spectral_field["ssa"] = spectral(np.where(cloud, 0.8, 0.0))
+ws.atm_spectral_field["g"] = 0.0
+ws.atm_scat_species = [A.HenyeyGreensteinScatterer("extinction", "ssa", "g")]
 
 ws.mc_antenna.set_gaussian_fwhm(0.6, 0.6)
 kwargs = dict(

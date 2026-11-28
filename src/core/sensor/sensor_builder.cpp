@@ -62,6 +62,8 @@ namespace {
 struct BoreGeometry {
   Vector3 pos;
   Vector2 los;
+  //! The roll [deg] of the instrument about the boresight
+  Numeric roll;
   //! Signed scan angle [deg], when the geometry is a scan
   std::optional<Numeric> scan_angle;
 };
@@ -114,7 +116,7 @@ but the side of the scan of a bare line of sight is not known.  Build the sensor
 
     auto& sensor = placed.emplace_back([&] {
       try {
-        return antenna_sensor(builder.antenna, channels, responses, placement.pos, placement.los, ell);
+        return antenna_sensor(builder.antenna, channels, responses, placement.pos, placement.los, ell, placement.roll);
       } catch (const std::exception& e) {
         throw std::runtime_error(arts::format(R"(Sensor "{}", placement {}:
 {})",
@@ -168,7 +170,8 @@ but the side of the scan of a bare line of sight is not known.  Build the sensor
 Sensor Builder::operator()(std::span<const Vector3> pos,
                            std::span<const Vector2> los,
                            const Vector2&           ell,
-                           const String&            name) const {
+                           const String&            name,
+                           std::span<const Numeric> roll) const {
   const String sensor = sensor_name(*this, name);
 
   if (pos.empty()) arts::user_error(R"(Sensor "{}": the builder requires at least one sensor position)", sensor);
@@ -179,11 +182,18 @@ Sensor Builder::operator()(std::span<const Vector3> pos,
         sensor,
         pos.size(),
         los.size());
+  if (not roll.empty() and roll.size() != pos.size())
+    arts::user_error(
+        R"(Sensor "{}": the builder requires one roll per position, or none. Got {} positions and {} rolls.)",
+        sensor,
+        pos.size(),
+        roll.size());
 
   std::vector<BoreGeometry> placements;
   placements.reserve(pos.size());
   for (Size i = 0; i < pos.size(); ++i) {
-    placements.push_back({.pos = pos[i], .los = los[i], .scan_angle = std::nullopt});
+    placements.push_back(
+        {.pos = pos[i], .los = los[i], .roll = roll.empty() ? 0.0 : roll[i], .scan_angle = std::nullopt});
   }
 
   return build(*this, placements, ell, sensor);
@@ -209,7 +219,7 @@ Sensor Builder::cross_track(std::span<const Vector3> pos,
   for (Size i = 0; i < pos.size(); ++i) {
     for (const Numeric s : scan_angles) {
       const Numeric azimuth = std::remainder(heading[i] + (s < 0.0 ? -90.0 : 90.0), 360.0);
-      placements.push_back({.pos = pos[i], .los = {180.0 - std::abs(s), azimuth}, .scan_angle = s});
+      placements.push_back({.pos = pos[i], .los = {180.0 - std::abs(s), azimuth}, .roll = 0.0, .scan_angle = s});
     }
   }
 

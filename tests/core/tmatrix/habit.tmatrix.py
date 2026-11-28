@@ -124,7 +124,7 @@ point.temperature = 270.0
 za = A.IrregularZenithAngleGrid(ANGLES)
 for concentration in [1e6, 2e6, 0, 1e6]:
     point[number] = float(concentration)
-    bulk = species.get_bulk_scattering_properties_tro_gridded(point, [110e9], za)
+    bulk = species.tro_gridded(point, A.AtmSpectralPoint(), [110e9], za)
     # The series of the habit's grid points, which surround the point equally; its rounding is relative to the
     # largest element
     expected = concentration * gridded.mean(axis=(0, 1))
@@ -150,14 +150,14 @@ np.testing.assert_array_equal(habit[0].phase_matrix, phase)
 
 # Solvers requesting laboratory-frame ARO data can consume a TRO habit too.
 point[number] = 1e6
-lab = species.get_bulk_scattering_properties_aro_gridded(
-    point, [110e9], [0.0, 90.0, 180.0], [0.0, 90.0, 180.0], za
+lab = species.aro_gridded(
+    point, A.AtmSpectralPoint(), [110e9], [0.0, 90.0, 180.0], [0.0, 90.0, 180.0], za
 )
 lab_phase = np.array(lab.phase_matrix)
 assert np.isfinite(lab_phase).all()
 point[number] = 2e6
-lab_twice = species.get_bulk_scattering_properties_aro_gridded(
-    point, [110e9], [0.0, 90.0, 180.0], [0.0, 90.0, 180.0], za
+lab_twice = species.aro_gridded(
+    point, A.AtmSpectralPoint(), [110e9], [0.0, 90.0, 180.0], [0.0, 90.0, 180.0], za
 )
 np.testing.assert_allclose(
     lab_twice.phase_matrix, 2 * lab_phase, rtol=1e-12, atol=1e-30
@@ -268,8 +268,8 @@ for sphere in [make(**sphere_args), make_aro(**sphere_args)]:
     species.add(A.ScatteringHabit(sphere, psd, RHO * np.pi / 6, 3.0))
     point[number] = 1e6
     bulk.append(
-        species.get_bulk_scattering_properties_aro_gridded(
-            point, [110e9], ZA_INC, DAA, A.IrregularZenithAngleGrid(ZA_SCAT)
+        species.aro_gridded(
+            point, A.AtmSpectralPoint(), [110e9], ZA_INC, DAA, A.IrregularZenithAngleGrid(ZA_SCAT)
         )
     )
 tro_phase, aro_phase = np.array(bulk[0].phase_matrix), np.array(bulk[1].phase_matrix)

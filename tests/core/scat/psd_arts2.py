@@ -33,7 +33,7 @@ def mass_integral(values, a):
 def assert_mass_closure(
     model, atm_point, a, b=3.0, tolerance=1e-2, mass_property=ice_mass
 ):
-    values = np.asarray(model.evaluate(atm_point, sizes, a, b))
+    values = np.asarray(model.evaluate(atm_point.temperature, atm_point.ssprops, sizes, a, b))
     assert np.all(np.isfinite(values))
     assert np.isclose(
         mass_integral(values, a),
@@ -115,7 +115,7 @@ assert np.isclose(np.trapezoid(number_values, sizes), number_density, rtol=1e-2)
 
 
 def check_derivative(model, atm_point, prop, a, b=3.0):
-    result = model.evaluate_with_derivatives(atm_point, sizes, a, b)
+    result = model.evaluate_with_derivatives(atm_point.temperature, atm_point.ssprops, sizes, a, b)
     derivative = np.asarray(result.derivative(prop))
     value = atm_point[prop]
     step = 2e-6 * max(abs(value), 1e-8)
@@ -124,8 +124,8 @@ def check_derivative(model, atm_point, prop, a, b=3.0):
     plus[prop] = value + step
     minus[prop] = value - step
     finite_difference = (
-        np.asarray(model.evaluate(plus, sizes, a, b))
-        - np.asarray(model.evaluate(minus, sizes, a, b))
+        np.asarray(model.evaluate(plus.temperature, plus.ssprops, sizes, a, b))
+        - np.asarray(model.evaluate(minus.temperature, minus.ssprops, sizes, a, b))
     ) / (2 * step)
     scale = max(np.linalg.norm(finite_difference), 1.0)
     assert np.linalg.norm(derivative - finite_difference) / scale < 2e-5
@@ -147,11 +147,11 @@ check_derivative(delanoe_with_dm, ice_with_dm, ice_mean, 480.0)
 # Non-strict temperature limits return zero; strict limits reject the call.
 cold_rain = point(rain_mass, water_content, temperature=250.0)
 non_strict = A.MGDSingleMoment(rain_mass, "Abel12", 273, 373, False)
-assert np.all(np.asarray(non_strict.evaluate(cold_rain, sizes, 523.0, 3.0)) == 0.0)
+assert np.all(np.asarray(non_strict.evaluate(cold_rain.temperature, cold_rain.ssprops, sizes, 523.0, 3.0)) == 0.0)
 
 strict = A.MGDSingleMoment(rain_mass, "Abel12", 273, 373, True)
 try:
-    strict.evaluate(cold_rain, sizes, 523.0, 3.0)
+    strict.evaluate(cold_rain.temperature, cold_rain.ssprops, sizes, 523.0, 3.0)
 except RuntimeError:
     pass
 else:

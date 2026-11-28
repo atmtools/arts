@@ -6,6 +6,7 @@
 #include <path_point.h>
 #include <physics_funcs.h>
 #include <rtepack.h>
+#include <subsurface_methods.h>
 #include <sun_methods.h>
 #include <vdisort-brdf.h>
 #include <vdisort_settings.h>
@@ -812,6 +813,257 @@ void legendre_degreeFromVDisortSettings(Index& legendre_degree, const VDisortSet
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// VDISORT subsurface: the column upside down
+////////////////////////////////////////////////////////////////////////////////
+
+/* VDISORT reflects only at its surface, so the subsurface is solved upside down.  VDISORT's top is the deepest point
+   of ray_path, and its surface is the interface to the space above, which then reflects back into the column.  The
+   sky enters through the interface as the radiance beneath VDISORT's surface.  ray_path starts at the interface and
+   descends, so level j of the settings is point N - j of ray_path, with N the number of layers.
+
+   The radiances in the column are those divided by the square of the real refractive index, which a flat interface
+   transmits with 1 - R.  The column's sources are then the Planck radiances themselves. */
+
+namespace {
+//! The point of ray_path at level j of the upside-down column of N layers
+Size upside_down(const Size N, const Size j) { return N - j; }
+}  // namespace
+
+void vdisort_settingsSubsurfaceInit(VDisortSettings&                   vdisort_settings,
+                                    const AscendingGrid&               freq_grid,
+                                    const ArrayOfPropagationPathPoint& ray_path,
+                                    const Index&                       quadrature_dimension,
+                                    const Index&                       legendre_polynomial_dimension,
+                                    const Index&                       fourier_mode_dimension) {
+  ARTS_TIME_REPORT
+
+  if (quadrature_dimension % 2) arts::user_error("Quadrature dimension ({}) must be even", quadrature_dimension);
+  if (ray_path.size() < 2) arts::user_error("Must have at least one layer (two levels) to use the vdisort solver");
+
+  for (Size i = 1; i < ray_path.size(); i++) {
+    if (not(ray_path[i].altitude() < ray_path[i - 1].altitude()))
+      arts::user_error("The subsurface ray_path must descend from the interface, but point {} is at {} m below {} m",
+                       i,
+                       ray_path[i].altitude(),
+                       ray_path[i - 1].altitude());
+  }
+
+  // The depth below the interface, deepest first
+  const Size N = ray_path.size() - 1;
+  Vector     depth(N + 1);
+  for (Size j = 0; j <= N; j++) depth[j] = ray_path.front().altitude() - ray_path[upside_down(N, j)].altitude();
+
+  vdisort_settings.resize(quadrature_dimension,
+                          legendre_polynomial_dimension,
+                          fourier_mode_dimension,
+                          freq_grid,
+                          DescendingGrid{std::move(depth)});
+}
+
+void vdisort_settingsSubsurfaceOpticalThickness(VDisortSettings&                   vdisort_settings,
+                                                const ArrayOfPropagationPathPoint& ray_path,
+                                                const SurfaceField&                surf_field,
+                                                const SubsurfaceSpectralField&     subsurf_spectral_field,
+                                                const Numeric&                     min_optical_depth) {
+  ARTS_TIME_REPORT
+
+  const Size N  = vdisort_settings.layer_count();
+  const Size nv = vdisort_settings.frequency_count();
+
+  if (ray_path.size() != N + 1)
+    arts::user_error(
+        "*ray_path* must have one more point than *vdisort_settings* has layers: {} vs {}", ray_path.size(), N);
+
+  // The absorption coefficient at every point of ray_path [m^-1]
+  const auto& freq_grid = vdisort_settings.freq_grid;
+  Matrix      absorption(N + 1, nv);
+  for (Size i = 0; i <= N; i++) {
+    const ComplexVector n = subsurface_refractive_index(
+        subsurface_spectral_point(subsurf_spectral_field, surf_field, freq_grid, ray_path[i]), nv);
+    for (Size iv = 0; iv < nv; iv++) absorption[i, iv] = refractive_index_absorption_coefficient(freq_grid[iv], n[iv]);
+  }
+
+  for (Size iv = 0; iv < nv; iv++) {
+    for (Size j = 0; j < N; j++) {
+      const Size    deeper = upside_down(N, j), shallower = upside_down(N, j + 1);
+      const Numeric thickness = ray_path[shallower].altitude() - ray_path[deeper].altitude();
+      const Numeric tau =
+          std::max(thickness * std::midpoint(absorption[deeper, iv], absorption[shallower, iv]), min_optical_depth);
+      vdisort_settings.optical_thicknesses[iv, j] =
+          (j == 0 ? 0.0 : vdisort_settings.optical_thicknesses[iv, j - 1]) + tau;
+    }
+  }
+}
+
+void vdisort_settingsSubsurfaceScatteringSpecies(VDisortSettings&                   vdisort_settings,
+                                                 const ArrayOfPropagationPathPoint& ray_path,
+                                                 const ArrayOfSubsurfacePoint&      subsurf_profile,
+                                                 const SurfaceField&                surf_field,
+                                                 const SubsurfaceSpectralField&     subsurf_spectral_field,
+                                                 const ArrayOfScatteringSpecies&    subsurf_scat_species) try {
+  ARTS_TIME_REPORT
+
+  const Size  N  = vdisort_settings.layer_count();
+  const Size  nv = vdisort_settings.frequency_count();
+  const Index L  = vdisort_settings.legendre_polynomial_dimension;
+
+  if (ray_path.size() != N + 1 or subsurf_profile.size() != N + 1)
+    arts::user_error(
+        "*ray_path* and *subsurf_profile* must have one more point than *vdisort_settings* has layers, {}, but have "
+        "{} and {}",
+        N,
+        ray_path.size(),
+        subsurf_profile.size());
+  if (L < 1) arts::user_error("Must have at least one Legendre mode to use the Legendre coefficients.");
+
+  // The bulk Legendre series, extinction and absorption of the species at every point of ray_path
+  const auto&                              freq_grid = vdisort_settings.freq_grid;
+  std::vector<ScatteringTroSpectralVector> bulk(N + 1);
+  for (Size i = 0; i <= N; i++) {
+    bulk[i] = subsurf_scat_species.tro_spectral(
+        subsurf_profile[i],
+        subsurface_spectral_point(subsurf_spectral_field, surf_field, freq_grid, ray_path[i]),
+        freq_grid,
+        L - 1);
+    if (not bulk[i].phase_matrix or bulk[i].phase_matrix->nrows() != static_cast<Index>(nv) or
+        bulk[i].phase_matrix->ncols() != L or bulk[i].extinction_matrix.size() != nv or
+        bulk[i].absorption_vector.size() != nv)
+      arts::user_error("The subsurface scattering species give no Legendre series of [{}, {}] at point {}", nv, L, i);
+  }
+
+  Vector invfac(L);
+  for (Index l = 0; l < L; l++) invfac[l] = 1.0 / std::sqrt(2 * l + 1);
+
+  vdisort_settings.legendre_coefficients.resize(nv, N, L);
+  for (Size iv = 0; iv < nv; iv++) {
+    Numeric previous = 0.0;
+    for (Size j = 0; j < N; j++) {
+      const Size    deeper = upside_down(N, j), shallower = upside_down(N, j + 1);
+      const Numeric thickness = ray_path[shallower].altitude() - ray_path[deeper].altitude();
+
+      // The species add their extinction to the absorption of the subsurface, and scatter what they do not absorb
+      const Numeric extinction =
+          thickness * std::midpoint(bulk[deeper].extinction_matrix[iv].A(), bulk[shallower].extinction_matrix[iv].A());
+      const Numeric absorption =
+          thickness * std::midpoint(bulk[deeper].absorption_vector[iv].I(), bulk[shallower].absorption_vector[iv].I());
+      const Numeric layer = vdisort_settings.optical_thicknesses[iv, j] - previous + extinction;
+      const Numeric ssa   = (extinction - absorption) / layer;
+      vdisort_settings.single_scattering_albedo[iv, j] = std::isnormal(ssa) ? ssa : 0.0;
+      previous                                         = vdisort_settings.optical_thicknesses[iv, j];
+      vdisort_settings.optical_thicknesses[iv, j] =
+          (j == 0 ? 0.0 : vdisort_settings.optical_thicknesses[iv, j - 1]) + layer;
+
+      // The coefficient on Y_l0 of the layer is the mean of its two points, normalized so that F11 is 1 at degree 0
+      auto c = vdisort_settings.legendre_coefficients[iv, j];
+      for (Index l = 0; l < L; l++)
+        c[l] = invfac[l] * (0.5 * ((*bulk[deeper].phase_matrix)[iv, l] + (*bulk[shallower].phase_matrix)[iv, l]));
+      if (const Numeric f11 = c[0].F11(); std::isnormal(f11)) {
+        for (auto& F : c) F /= f11;
+      } else {
+        c          = CompactPlanarMuelmat{};
+        c[0].F11() = 1.0;
+      }
+    }
+  }
+}
+ARTS_METHOD_ERROR_CATCH
+
+void vdisort_settingsSubsurfaceLayerThermalEmissionLinearInTau(VDisortSettings&              vdisort_settings,
+                                                               const ArrayOfSubsurfacePoint& subsurf_profile,
+                                                               const AscendingGrid&          freq_grid) {
+  ARTS_TIME_REPORT
+
+  const Size nv = freq_grid.size();
+  const Size N  = vdisort_settings.layer_count();
+
+  if (subsurf_profile.size() != N + 1)
+    arts::user_error("*subsurf_profile* must have one more point than *vdisort_settings* has layers: {} vs {}",
+                     subsurf_profile.size(),
+                     N);
+  if (not same_shape({nv, N}, vdisort_settings.optical_thicknesses))
+    arts::user_error("Incorrect shape: [{}, {}] vs {:B,}", nv, N, vdisort_settings.optical_thicknesses.shape());
+
+  vdisort_settings.source_polynomial.resize(nv, N, 2);
+
+  for (Size iv = 0; iv < nv; iv++) {
+    const Numeric f = freq_grid[iv];
+
+    for (Size j = 0; j < N; j++) {
+      const Numeric y0 = planck(f, subsurf_profile[upside_down(N, j)].temperature);
+      const Numeric y1 = planck(f, subsurf_profile[upside_down(N, j + 1)].temperature);
+
+      const Numeric x0 = j == 0 ? 0.0 : vdisort_settings.optical_thicknesses[iv, j - 1];
+      const Numeric x1 = vdisort_settings.optical_thicknesses[iv, j];
+
+      const Numeric b                              = (y1 - y0) / (x1 - x0);
+      vdisort_settings.source_polynomial[iv, j, 0] = Stokvec{y0 - b * x0, 0.0, 0.0, 0.0};
+      vdisort_settings.source_polynomial[iv, j, 1] = Stokvec{b, 0.0, 0.0, 0.0};
+    }
+  }
+}
+
+void vdisort_settingsSubsurfaceDeepEmissionByTemperature(VDisortSettings&              vdisort_settings,
+                                                         const AscendingGrid&          freq_grid,
+                                                         const ArrayOfSubsurfacePoint& subsurf_profile) {
+  ARTS_TIME_REPORT
+
+  if (subsurf_profile.empty()) arts::user_error("*subsurf_profile* is empty");
+
+  const Index   nv = freq_grid.size();
+  const Numeric T  = subsurf_profile.back().temperature;
+
+  // The deepest level is VDISORT's top, so its radiation is the downward boundary
+  auto& limit = vdisort_settings.downward_boundary_condition = Stokvec{};
+  check_boundary(limit, nv, "downward");
+
+  for (Index iv = 0; iv < nv; iv++) {
+    const Stokvec B{planck(freq_grid[iv], T), 0.0, 0.0, 0.0};
+    for (Index i = 0; i < limit.extent(3); i++) set_mode_zero(limit[iv], i, B);
+  }
+}
+
+void vdisort_settingsSubsurfaceInterfaceFresnel(VDisortSettings&                   vdisort_settings,
+                                                const ArrayOfPropagationPathPoint& ray_path,
+                                                const SurfaceField&                surf_field,
+                                                const SubsurfaceSpectralField&     subsurf_spectral_field) {
+  ARTS_TIME_REPORT
+
+  if (ray_path.empty()) arts::user_error("*ray_path* is empty");
+
+  const Index         nv = vdisort_settings.frequency_count();
+  const ComplexVector n  = subsurface_refractive_index(
+      subsurface_spectral_point(subsurf_spectral_field, surf_field, vdisort_settings.freq_grid, ray_path.front()), nv);
+
+  // Seen from within, the space above has the index 1 / n.  The interface is that of the real index: the absorption
+  // of the subsurface is in its optical thickness.  A mirror cannot reflect the beam, so there is no beam reflection.
+  const Vector mu = upward_streams(vdisort_settings);
+  const Index  NF = vdisort_settings.fourier_mode_dimension;
+  resize_surface(vdisort_settings, NF, true);
+  for (Index iv = 0; iv < nv; iv++)
+    set_surface(vdisort_settings,
+                iv,
+                vdisort::brdf::fresnel_fourier_modes(
+                    Complex{1.0 / n[iv].real(), 0.0}, NF, mu, mu, std::numeric_limits<Numeric>::quiet_NaN()));
+}
+
+void vdisort_settingsSubsurfaceIsotropicSky(VDisortSettings&     vdisort_settings,
+                                            const AscendingGrid& freq_grid,
+                                            const Numeric&       sky_temperature) {
+  ARTS_TIME_REPORT
+
+  const Index nv = freq_grid.size();
+
+  // The sky is beneath VDISORT's surface, which transmits it with 1 - R
+  auto& limit = vdisort_settings.upward_boundary_condition = Stokvec{};
+  check_boundary(limit, nv, "upward");
+
+  for (Index iv = 0; iv < nv; iv++) {
+    const Stokvec B{planck(freq_grid[iv], sky_temperature), 0.0, 0.0, 0.0};
+    for (Index i = 0; i < limit.extent(3); i++) set_mode_zero(limit[iv], i, B);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Agenda setup
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -899,4 +1151,74 @@ Use "ScatteringSpecies" or "None".
       break;
   }
   vdisort_settings_agenda = std::move(agenda).finalize(false);
+}
+
+void subsurf_vdisort_settings_agendaSetup(Agenda&        subsurf_vdisort_settings_agenda,
+                                          const String&  scattering_setting,
+                                          const String&  layer_emission_setting,
+                                          const String&  deep_setting,
+                                          const String&  interface_setting,
+                                          const String&  sky_setting,
+                                          const Numeric& sky_temperature,
+                                          const Numeric& min_optical_depth) {
+  ARTS_TIME_REPORT
+
+  AgendaCreator agenda("subsurf_vdisort_settings_agenda");
+  agenda.add("jac_targetsOff");
+  agenda.add("subsurf_profileFromPath");
+  agenda.add("vdisort_settingsSubsurfaceInit");
+  agenda.add("vdisort_settingsSubsurfaceOpticalThickness", SetWsv("min_optical_depth", min_optical_depth));
+  // The species add to the optical thickness of the absorption, so they come after it
+  switch (to<settings_agenda_setup_scattering_type>(scattering_setting)) {
+    using enum settings_agenda_setup_scattering_type;
+    case None:
+      agenda.add("vdisort_settingsNoLegendre");
+      agenda.add("vdisort_settingsNoSingleScatteringAlbedo");
+      break;
+    case ScatteringSpecies: agenda.add("vdisort_settingsSubsurfaceScatteringSpecies"); break;
+    case ScatteringSpeciesDeltaMPlus:
+      arts::user_error(R"(VDISORT has no delta-M-plus scaling.
+
+scattering_setting: "{}"
+
+Use "ScatteringSpecies" or "None".
+)",
+                       scattering_setting);
+  }
+  // Since we have the optical thickness, we can set the thermal emission
+  switch (to<settings_agenda_setup_layer_emission_type>(layer_emission_setting)) {
+    using enum settings_agenda_setup_layer_emission_type;
+    case LinearInTau: agenda.add("vdisort_settingsSubsurfaceLayerThermalEmissionLinearInTau"); break;
+    case None:        agenda.add("vdisort_settingsNoLayerThermalEmission"); break;
+    case LinearInTauNonLTE:
+      arts::user_error(R"(The subsurface has no non-LTE emission.
+
+layer_emission_setting: "{}"
+
+Use "LinearInTau" or "None".
+)",
+                       layer_emission_setting);
+  }
+  // The deepest level is VDISORT's top
+  switch (to<subsurf_settings_agenda_setup_deep_type>(deep_setting)) {
+    using enum subsurf_settings_agenda_setup_deep_type;
+    case None:    agenda.add("vdisort_settingsNoSpaceEmission"); break;
+    case Thermal: agenda.add("vdisort_settingsSubsurfaceDeepEmissionByTemperature"); break;
+  }
+  // The surface reflects the sun's beam, so the sun comes first; there is none within the subsurface
+  agenda.add("vdisort_settingsNoSun");
+  switch (to<subsurf_settings_agenda_setup_interface_type>(interface_setting)) {
+    using enum subsurf_settings_agenda_setup_interface_type;
+    case None:    agenda.add("vdisort_settingsNoSurfaceScattering"); break;
+    case Fresnel: agenda.add("vdisort_settingsSubsurfaceInterfaceFresnel"); break;
+  }
+  // The sky is beneath VDISORT's surface
+  switch (to<subsurf_settings_agenda_setup_sky_type>(sky_setting)) {
+    using enum subsurf_settings_agenda_setup_sky_type;
+    case None: agenda.add("vdisort_settingsNoSurfaceEmission"); break;
+    case Isotropic:
+      agenda.add("vdisort_settingsSubsurfaceIsotropicSky", SetWsv("sky_temperature", sky_temperature));
+      break;
+  }
+  subsurf_vdisort_settings_agenda = std::move(agenda).finalize(false);
 }

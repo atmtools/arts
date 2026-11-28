@@ -25,7 +25,7 @@ def _rayleigh_beam_phase_matrix(signed_mu, mu0, nfourier):
     atm = arts.AtmPoint()
     atm.pressure = 8e4
     atm.temperature = 260.0
-    optics = arts.vdisort.scattering_optics(species, atm, 89e9, signed_mu, [-mu0], nfourier)
+    optics = arts.vdisort.scattering_optics(species, atm, arts.AtmSpectralPoint(), 89e9, signed_mu, [-mu0], nfourier)
     return arts.vdisort.combine_beam_phase_matrices(
         np.asarray(optics.cosine)[:, None, :, 0], np.asarray(optics.sine)[:, None, :, 0]
     )

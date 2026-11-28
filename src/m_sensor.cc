@@ -604,16 +604,17 @@ void measurement_sensorsAddCamera(ArrayOfSensor&       measurement_sensors,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void measurement_sensorsAddSensorBuilder(ArrayOfSensor&       measurement_sensors,
-                                         const SurfaceField&  surf_field,
-                                         const Vector3&       pos,
-                                         const Vector2&       los,
-                                         const SensorBuilder& sensor_builder,
-                                         const String&        name) try {
+void measurement_sensorsAddSensorBuilder(ArrayOfSensor&        measurement_sensors,
+                                         const SurfaceField&   surf_field,
+                                         const ArrayOfVector3& pos,
+                                         const ArrayOfVector2& los,
+                                         const SensorBuilder&  sensor_builder,
+                                         const String&         name,
+                                         const Vector&         roll) try {
   ARTS_TIME_REPORT
 
   append_sensor(measurement_sensors, name, [&](const String& sensor_name) {
-    return sensor_builder(std::span{&pos, 1}, std::span{&los, 1}, surf_field.ellipsoid, sensor_name);
+    return sensor_builder(pos, los, surf_field.ellipsoid, sensor_name, roll);
   });
 }
 ARTS_METHOD_ERROR_CATCH

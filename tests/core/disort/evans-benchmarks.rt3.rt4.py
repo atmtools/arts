@@ -209,7 +209,7 @@ def species(ext, sca, coef):
     degree = coef.shape[0] - 1
     a = sca * coef[:, RTEPACK_ORDER] / np.sqrt(4 * np.pi * (2 * np.arange(degree + 1) + 1))[:, None]
 
-    def bulk(atm, f, n):
+    def bulk(atm, spectral, f, n):
         phase = np.zeros((len(f), n + 1, 6))
         phase[:, : min(n, degree) + 1] = a[: n + 1]
         return A.ScatteringTroSpectralVector(
@@ -255,10 +255,10 @@ def vdisort(case, nmu):
         if not name:
             continue
         sp = species(*case["legendre"][name])
-        o = A.vdisort.scattering_optics(sp, ATM, freq, mu, mu, nf)
+        o = A.vdisort.scattering_optics(sp, ATM, A.AtmSpectralPoint(), freq, mu, mu, nf)
         C[:, l], S[:, l] = o.cosine, o.sine
         if case["flux"] > 0:
-            o = A.vdisort.scattering_optics(sp, ATM, freq, mu, [-case["mu0"]], nf)
+            o = A.vdisort.scattering_optics(sp, ATM, A.AtmSpectralPoint(), freq, mu, [-case["mu0"]], nf)
             Cb[:, l], Sb[:, l] = np.asarray(o.cosine)[:, :, 0], np.asarray(o.sine)[:, :, 0]
     # Evans' number of Stokes components
     ns = case["nstokes"]
@@ -388,7 +388,7 @@ def rt4(case):
             continue
         if name not in made:
             made[name] = len(optics)
-            optics.append(A.rt4.scattering_optics(species(*case["legendre"][name]), ATM, f, mu, ns))
+            optics.append(A.rt4.scattering_optics(species(*case["legendre"][name]), ATM, A.AtmSpectralPoint(), f, mu, ns))
         index.append(made[name])
     ground = A.polradtran.FresnelSurface(case["fresnel"]) if case["fresnel"] is not None else A.polradtran.LambertianSurface(case["albedo"])
     p = A.rt4.Problem(

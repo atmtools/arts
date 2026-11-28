@@ -11,7 +11,7 @@ ws.surf_field[A.SurfaceKey("t")] = 280.0
 ws.atm_fieldRead(toa=30e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1)
 ws.abs_speciesSet(species=[])
 ws.abs_bands = {}
-ws.scat_species = []
+ws.atm_scat_species = []
 ws.spectral_propmat_agendaAuto()
 ws.ray_path_observer_agendaSetGeometric(
     max_step_option="step", add_crossings=1, remove_non_atm=1
@@ -52,18 +52,15 @@ surface, space = ws.measurement_sensors.split(ws.measurement_vec)
 assert np.allclose(np.asarray(ws.measurement_sensors[0].reshape(surface).data), expected_surface)
 assert np.allclose(np.asarray(ws.measurement_sensors[1].reshape(space).data), expected_space)
 
-# A scattering-property target is perturbed through AtmField in model-state
-# space.  Common random numbers make repeating the stochastic Jacobian exactly
-# reproducible for a fixed seed.
-ext = A.ScatteringSpeciesProperty("cloud", A.ParticulateProperty.Extinction)
-ssa = A.ScatteringSpeciesProperty(
-    "cloud", A.ParticulateProperty.SingleScatteringAlbedo
-)
-ws.atm_field[ext] = 1e-4
-ws.atm_field[ssa] = 0.5
-ws.scat_species = [A.HenyeyGreensteinScatterer(ext, ssa, 0.2)]
+# A scattering-property target is perturbed through AtmSpectralField in
+# model-state space.  Common random numbers make repeating the stochastic
+# Jacobian exactly reproducible for a fixed seed.
+ws.atm_spectral_field["extinction"] = 1e-4
+ws.atm_spectral_field["ssa"] = 0.5
+ws.atm_spectral_field["g"] = 0.2
+ws.atm_scat_species = [A.HenyeyGreensteinScatterer("extinction", "ssa", "g")]
 ws.jac_targetsInit()
-ws.jac_targetsAddAtmosphere(target=ext, d=1e-5)
+ws.jac_targetsAddAtmosphereSpectral(target="extinction", d=1e-5)
 ws.jac_targetsAddSensorFrequencyPolyOffset(d=1e6, sensor_elem=0)
 ws.jac_targetsFinalize()
 
@@ -72,6 +69,7 @@ ws.measurement_jacAddSensorJacobianPerturbations()
 scattering_jac = np.asarray(ws.measurement_jac).copy()
 assert np.all(np.isfinite(scattering_jac))
 assert np.any(scattering_jac != 0.0)
+assert np.any(scattering_jac[:, 0] != 0.0)
 assert np.any(scattering_jac[:2, 1] != 0.0)
 assert np.all(scattering_jac[2:, 1] == 0.0)
 ws.measurement_vecFromSensor()

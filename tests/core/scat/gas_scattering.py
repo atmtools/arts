@@ -17,13 +17,13 @@ point = A.AtmPoint()
 point.pressure = 101325.0
 point.temperature = 288.15
 angles = A.IrregularZenithAngleGrid([0.0, 90.0, 180.0])
-bulk = gas.get_bulk_scattering_properties_tro_gridded(point, [frequency], angles)
+bulk = gas.tro_gridded(point, A.AtmSpectralPoint(), [frequency], angles)
 
 point_twice_pressure = A.AtmPoint()
 point_twice_pressure.pressure = 2.0 * point.pressure
 point_twice_pressure.temperature = point.temperature
-bulk_twice_pressure = gas.get_bulk_scattering_properties_tro_gridded(
-    point_twice_pressure, [frequency], angles
+bulk_twice_pressure = gas.tro_gridded(
+    point_twice_pressure, A.AtmSpectralPoint(), [frequency], angles
 )
 assert np.allclose(
     np.asarray(bulk_twice_pressure.extinction_matrix),
@@ -35,8 +35,8 @@ with TemporaryDirectory() as directory:
     filename = Path(directory) / "gas_species.xml"
     pyarts.xml.save(A.ArrayOfScatteringSpecies([gas]), str(filename))
     restored = pyarts.xml.load(str(filename))
-    restored_bulk = restored.get_bulk_scattering_properties_tro_gridded(
-        point, [frequency], angles
+    restored_bulk = restored.tro_gridded(
+        point, A.AtmSpectralPoint(), [frequency], angles
     )
     assert np.allclose(
         np.asarray(restored_bulk.extinction_matrix),
@@ -69,7 +69,7 @@ ws.ray_path_suns_pathFromPathObserver(just_hit=1)
 
 
 def calculate(species):
-    ws.scat_species = [species]
+    ws.atm_scat_species = [species]
     ws.spectral_radClearskyScattering()
     return np.asarray(ws.spectral_rad).copy()[0]
 

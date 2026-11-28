@@ -495,4 +495,5 @@ std::string std::formatter<SubsurfaceField>::to_string(const SubsurfaceField &v)
   return tags.bracket ? ("{" + out + "}") : out;
 }
 
-static_assert(field<SubsurfaceField, SubsurfaceKeyVal, Numeric, Numeric, Numeric>, "The subsurface field must satisfy the field concepts");
+static_assert(field<SubsurfaceField, SubsurfaceKeyVal, Numeric, Numeric, Numeric>,
+              "The subsurface field must satisfy the field concepts");

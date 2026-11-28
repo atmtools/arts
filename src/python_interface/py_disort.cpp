@@ -1083,6 +1083,7 @@ supplied as ``[B, 0, 0, 0]``.
                  &vdisort::scattering_optics,
                  "scattering_species"_a,
                  "atm_point"_a,
+                 "atm_spectral_point"_a,
                  "frequency"_a,
                  "mu_out"_a,
                  "mu_in"_a,
@@ -1098,7 +1099,7 @@ matrix ``P = 4 pi Z / sigma``, normalised to 1 over 4 pi, built by vector
 geometry in VDISORT's meridional basis (Q = I_v - I_h, U = 2 Re(E_v E_h*)).
 The modes, extinction, absorption and phase integral ``sigma = int Z11 dOmega``
 all come from the species' Fourier modes at exactly these zenith angles
-(``get_bulk_scattering_properties_aro_fourier``).  VDISORT's optical depth and
+(``aro_fourier``).  VDISORT's optical depth and
 albedo are scalars, so to ``normalisation_tolerance`` times K11 the extinction,
 absorption and ``sigma`` must not depend on the incidence angle nor polarize,
 and ``sigma`` must match K11 - a1.  ARTS's own
@@ -1176,6 +1177,7 @@ this one with ``mu = cos(za)`` and ``phi = -aa``.  Pass the results to
                  &vdisort::main_data_from_path,
                  "ray_path"_a,
                  "atm_path"_a,
+                 "atm_spectral_field"_a,
                  "spectral_propmat_path"_a,
                  "freq_grid"_a,
                  "freq_index"_a,

@@ -100,6 +100,30 @@ Numeric legendre(Index n, Numeric x);
   */
 void legendre_polynomials(VectorView p, Numeric x);
 
+/** Wigner's d^l_mn(theta) of the degrees l = 0, 1, ..., d.size() - 1, for integer orders m and n
+ *
+ * d^l_mn(theta) = <l m| exp(-i theta J_y) |l n>, 0 for l < max(|m|, |n|).  It holds
+ *   d^l_00(theta) = P_l(cos(theta)), the Legendre polynomials,
+ *   d^l_0m(theta) = sqrt((l - m)! / (l + m)!) P^m_l(cos(theta)), m >= 0, with P^m_l the associated Legendre
+ *     functions without the Condon-Shortley phase (the Schmidt functions of schmidt() over sqrt(2) for m > 0),
+ * and the generalized spherical functions of polarized scattering (Hovenier et al. 2004) are
+ *   P^l_22 = d^l_22, P^l_2-2 = d^l_2-2 and P^l_02 = -d^l_02.
+ *
+ * The functions are those of the three-term recurrence in l,
+ *   l sqrt(((l + 1)^2 - m^2) ((l + 1)^2 - n^2)) d^(l+1)
+ *     = (2 l + 1) (l (l + 1) cos(theta) - m n) d^l - (l + 1) sqrt((l^2 - m^2) (l^2 - n^2)) d^(l-1),
+ * from l0 = max(|m|, |n|), where for l0 = M >= |N|
+ *   d^M_MN = (-1)^(M - N) sqrt((2 M)! / ((M + N)! (M - N)!)) cos^(M + N)(theta / 2) sin^(M - N)(theta / 2),
+ * and d^l_mn = (-1)^(m - n) d^l_nm = d^l_-n-m gives the other orders.  The angle, not its cosine, keeps the
+ * relative accuracy of the functions that vanish at 0 or pi.
+ *
+ * @param[out] d The functions of the degrees 0, 1, ..., d.size() - 1
+ * @param[in] m The first order
+ * @param[in] n The second order
+ * @param[in] theta The angle [rad]
+ */
+void wigner_d(VectorView d, Index m, Index n, Numeric theta);
+
 /** Computes n!
   * 
   * @param[in] n The index

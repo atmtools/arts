@@ -175,6 +175,7 @@ add_library(artsworkspace STATIC
   m_tramat.cc
   m_wigner.cc
   sun_methods.cc
+  subsurface_methods.cc
   xml_io_old.cc
 )
 

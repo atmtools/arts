@@ -70,6 +70,31 @@ void py_jac(py::module_& m) try {
                  &Jacobian::SubsurfaceTarget::x_size,
                  "Size of target in state vector\n\n.. :class:`~pyarts3.arts.Index`");
 
+  // The spectral targets of the spectral fields, which have no transformations
+  const auto bind_spectral_target =
+      [&m]<typename T>(std::type_identity<T>, const char* name, const char* doc, const char* type_doc) {
+        py::class_<T> c(m, name);
+        generic_interface(c);
+        c.doc() = doc;
+        c.def_ro("type", &T::type, type_doc);
+        c.def_ro("d", &T::d, "Perturbation magnitude\n\n.. :class:`~pyarts3.arts.Numeric`");
+        c.def_ro("target_pos", &T::target_pos, "Target position\n\n.. :class:`~pyarts3.arts.Index`");
+        c.def_ro("x_start", &T::x_start, "Start index of target in state vector\n\n.. :class:`~pyarts3.arts.Index`");
+        c.def_ro("x_size", &T::x_size, "Size of target in state vector\n\n.. :class:`~pyarts3.arts.Index`");
+      };
+  bind_spectral_target(std::type_identity<Jacobian::AtmSpectralTarget>{},
+                       "JacobianAtmSpectralTarget",
+                       "Spectral atmospheric target",
+                       "Type of target\n\n.. :class:`~pyarts3.arts.AtmSpectralPropertyTag`");
+  bind_spectral_target(std::type_identity<Jacobian::SurfaceSpectralTarget>{},
+                       "JacobianSurfaceSpectralTarget",
+                       "Spectral surface target",
+                       "Type of target\n\n.. :class:`~pyarts3.arts.SurfaceSpectralPropertyTag`");
+  bind_spectral_target(std::type_identity<Jacobian::SubsurfaceSpectralTarget>{},
+                       "JacobianSubsurfaceSpectralTarget",
+                       "Spectral subsurface target",
+                       "Type of target\n\n.. :class:`~pyarts3.arts.SubsurfaceSpectralPropertyTag`");
+
   py::class_<Jacobian::LineTarget> line(m, "JacobianLineTarget");
   generic_interface(line);
   line.doc() = "Line target";
@@ -257,6 +282,18 @@ state.
   auto subsurf_targets = py::bind_vector<std::vector<Jacobian::SubsurfaceTarget>, py::rv_policy::reference_internal>(
       m, "ArrayOfSubsurfaceTarget");
   subsurf_targets.doc() = "List of subsurface targets";
+  auto atm_spectral_targets =
+      py::bind_vector<std::vector<Jacobian::AtmSpectralTarget>, py::rv_policy::reference_internal>(
+          m, "ArrayOfAtmSpectralTarget");
+  atm_spectral_targets.doc() = "List of spectral atmospheric targets";
+  auto surf_spectral_targets =
+      py::bind_vector<std::vector<Jacobian::SurfaceSpectralTarget>, py::rv_policy::reference_internal>(
+          m, "ArrayOfSurfaceSpectralTarget");
+  surf_spectral_targets.doc() = "List of spectral surface targets";
+  auto subsurf_spectral_targets =
+      py::bind_vector<std::vector<Jacobian::SubsurfaceSpectralTarget>, py::rv_policy::reference_internal>(
+          m, "ArrayOfSubsurfaceSpectralTarget");
+  subsurf_spectral_targets.doc() = "List of spectral subsurface targets";
   auto line_targets =
       py::bind_vector<std::vector<Jacobian::LineTarget>, py::rv_policy::reference_internal>(m, "ArrayOfLineTarget");
   line_targets.doc() = "List of line targets";
@@ -270,6 +307,9 @@ state.
   generic_interface(atm_targets);
   generic_interface(surf_targets);
   generic_interface(subsurf_targets);
+  generic_interface(atm_spectral_targets);
+  generic_interface(surf_spectral_targets);
+  generic_interface(subsurf_spectral_targets);
   generic_interface(line_targets);
   generic_interface(sensor_targets);
   generic_interface(error_targets);
@@ -283,6 +323,15 @@ state.
   jacs.def_rw("subsurf",
               &JacobianTargets::subsurf,
               "List of subsurface targets\n\n.. :class:`~pyarts3.arts.ArrayOfSubsurfaceTarget`");
+  jacs.def_rw("atm_spectral",
+              &JacobianTargets::atm_spectral,
+              "List of spectral atmospheric targets\n\n.. :class:`~pyarts3.arts.ArrayOfAtmSpectralTarget`");
+  jacs.def_rw("surf_spectral",
+              &JacobianTargets::surf_spectral,
+              "List of spectral surface targets\n\n.. :class:`~pyarts3.arts.ArrayOfSurfaceSpectralTarget`");
+  jacs.def_rw("subsurf_spectral",
+              &JacobianTargets::subsurf_spectral,
+              "List of spectral subsurface targets\n\n.. :class:`~pyarts3.arts.ArrayOfSubsurfaceSpectralTarget`");
   jacs.def_rw("line", &JacobianTargets::line, "List of line targets\n\n.. :class:`~pyarts3.arts.ArrayOfLineTarget`");
   jacs.def_rw(
       "sensor", &JacobianTargets::sensor, "List of sensor targets\n\n.. :class:`~pyarts3.arts.ArrayOfSensorTarget`");

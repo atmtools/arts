@@ -9,7 +9,7 @@
    solvers get their inputs from the same ARTS data by three different
    routes:
    - RT4: the azimuthal mean of ARTS's laboratory-frame phase matrix
-     (get_bulk_scattering_properties_aro_fourier, Mishchenko-style
+     (aro_fourier, Mishchenko-style
      rotations) on RT4's streams;
    - RT3: the species' Legendre series, which RT3 rotates and
      Fourier-transforms itself;
@@ -216,7 +216,7 @@ Numeric rt4_input_difference(const atmosphere& a, const rt4::problem& p) {
     const auto&                            o = p.optics[p.layer_optics_index[l]];
     std::array<vdisort::fourier_optics, 2> v;
     for (Index j = 0; j < 2; j++)
-      v[j] = vdisort::scattering_optics(a.species, a.atm_path[l + j], frequency, mu, mu, 1, 1e-6);
+      v[j] = vdisort::scattering_optics(a.species, a.atm_path[l + j], AtmSpectralPoint{}, frequency, mu, mu, 1, 1e-6);
     Numeric scale = 0.0, diff = 0.0;
     for (Index ho = 0; ho < 2; ho++) {
       for (Index hi = 0; hi < 2; hi++) {
@@ -259,6 +259,7 @@ thermal_result thermal(const atmosphere& a, Numeric max_delta_tau, bool fresnel)
   const auto p4 = rt4::problem_from_path(
       a.ray_path,
       a.atm_path,
+      AtmSpectralField{},
       a.propmat,
       a.freq_grid,
       0,
@@ -269,6 +270,7 @@ thermal_result thermal(const atmosphere& a, Numeric max_delta_tau, bool fresnel)
       2.7);
   const auto p3 = rt3::problem_from_path(a.ray_path,
                                          a.atm_path,
+                                         AtmSpectralField{},
                                          a.propmat,
                                          a.freq_grid,
                                          0,
@@ -283,6 +285,7 @@ thermal_result thermal(const atmosphere& a, Numeric max_delta_tau, bool fresnel)
                                          2.7);
   const auto v  = vdisort::main_data_from_path(a.ray_path,
                                                a.atm_path,
+                                               AtmSpectralField{},
                                                a.propmat,
                                                a.freq_grid,
                                                0,
@@ -356,6 +359,7 @@ void test_solar(const atmosphere& a, Numeric max_delta_tau) {
   const auto        p3       = [&] {
     auto p        = rt3::problem_from_path(a.ray_path,
                                            a.atm_path,
+                                           AtmSpectralField{},
                                            a.propmat,
                                            a.freq_grid,
                                            0,
@@ -376,6 +380,7 @@ void test_solar(const atmosphere& a, Numeric max_delta_tau) {
   const auto v = vdisort::main_data_from_path(
       a.ray_path,
       a.atm_path,
+      AtmSpectralField{},
       a.propmat,
       a.freq_grid,
       0,

@@ -36,12 +36,15 @@ struct Builder {
    *  The scan side of a line of sight is not known here, so every channel must
    *  have a polarization that does not depend on the scan (scan_rotation ==
    *  0); use cross_track() otherwise.  The sensor is named name, or after its
-   *  number of channels if name is empty.
+   *  number of channels if name is empty.  Each placement can be rolled about
+   *  its boresight by roll [deg], one per placement or none for no roll; the
+   *  whole instrument turns, see AntennaPattern.
    */
   [[nodiscard]] Sensor operator()(std::span<const Vector3> pos,
                                   std::span<const Vector2> los,
                                   const Vector2&           ell,
-                                  const String&            name = "") const;
+                                  const String&            name = "",
+                                  std::span<const Numeric> roll = {}) const;
 
   /** The sensor of cross-track scans
    *

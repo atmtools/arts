@@ -75,8 +75,9 @@ It changes six things:
   to rounding next to the axis, and uses the limits only on the axis itself
   (:ref:`Sec T-matrix amplitude`).
 * Shared ARTS routines replace the original's own: ``Legendre`` for the
-  Gauss-Legendre quadratures, the Schmidt functions behind :math:`d^n_{0m}` and
-  the Legendre polynomials, the LU solve of ``right_solve_inplace`` for
+  Gauss-Legendre quadratures, the Schmidt functions behind :math:`d^n_{0m}`,
+  Wigner's functions for the generalized spherical functions
+  (``Legendre::wigner_d``) and the Legendre polynomials, the LU solve of ``right_solve_inplace`` for
   :math:`T=-\mathrm{Rg}Q\,Q^{-1}` in place of the original's inverse and
   product, and wigxjpf for the Clebsch-Gordan coefficients.  Boost's TOMS 748
   root finder solves for the power-law radii on their whole interval, where the

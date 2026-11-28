@@ -15,7 +15,7 @@
  * propagation paths into rt3::scattering_set and rt3::problem.  RT3 takes
  * the scattering matrix of totally randomly oriented (TRO) particles as
  * Legendre series, and gets them from the species' own Legendre series
- * (ArrayOfScatteringSpecies::get_bulk_scattering_properties_tro_spectral).
+ * (ArrayOfScatteringSpecies::tro_spectral).
  *
  * Stokes and sign conventions.  ARTS's TRO scattering matrix is stored as
  * [F11, F12, F22, F33, F34, F44] in the scattering-plane basis with
@@ -37,8 +37,10 @@
 namespace polradtran::rt3 {
 /** The scattering set of scattering species at one atmospheric point.
  *
+ * atm_spectral_point is the spectral point of the atmosphere there, at frequency.
+ *
  * The species give their Legendre series to degree themselves
- * (ArrayOfScatteringSpecies::get_bulk_scattering_properties_tro_spectral,
+ * (ArrayOfScatteringSpecies::tro_spectral,
  * coefficients a_l on the orthonormal Y_l0); these are the Legendre
  * coefficients c_l = a_l sqrt((2 l + 1) / 4 pi) of F = sum_l c_l P_l.
  * Species that cannot give them (gridded particle data, ARO data) are an
@@ -63,6 +65,7 @@ namespace polradtran::rt3 {
  */
 scattering_set scattering_optics(const ArrayOfScatteringSpecies& scattering_species,
                                  const AtmPoint&                 atm_point,
+                                 const AtmSpectralPoint&         atm_spectral_point,
                                  Numeric                         frequency,
                                  Index                           degree,
                                  Numeric                         normalisation_tolerance);
@@ -104,13 +107,15 @@ struct path_settings {
  * scattering_optics(): mean extinction, mean scattering, and the
  * scattering-weighted mean of the two normalised series, which is the
  * normalised series of the mean phase matrix.  A layer whose mean extinction
- * is zero is gas-only.
+ * is zero is gas-only.  The spectral points of
+ * scattering_optics() are atm_spectral_field at the positions of ray_path.
  *
  * The problem has thermal emission and no direct beam; set direct_flux,
  * direct_mu and thermal on the result for other sources.
  */
 problem problem_from_path(const ArrayOfPropagationPathPoint& ray_path,
                           const ArrayOfAtmPoint&             atm_path,
+                          const AtmSpectralField&            atm_spectral_field,
                           const ArrayOfPropmatVector&        spectral_propmat_path,
                           const AscendingGrid&               freq_grid,
                           Index                              freq_index,

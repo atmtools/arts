@@ -6,6 +6,7 @@
 #include <nanobind/stl/function.h>
 #include <nanobind/stl/optional.h>
 #include <nanobind/stl/shared_ptr.h>
+#include <nanobind/stl/unordered_map.h>
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #include <python_interface.h>
@@ -47,10 +48,23 @@ void py_psd(py::module_& m) try {
            "number_density"_a,
            "t_min"_a = 0.0,
            "t_max"_a = 350.0)
-      .def("evaluate", &scattering::MonodispersePSD::evaluate, "Evaluate PSD at an atmospheric point.")
-      .def("evaluate_with_derivatives",
-           &scattering::MonodispersePSD::evaluate_with_derivatives,
-           "Evaluate the PSD and its derivatives at an atmospheric point.")
+      .def("evaluate",
+           &scattering::MonodispersePSD::evaluate,
+           "temperature"_a,
+           "ssprops"_a,
+           "particle_sizes"_a,
+           "a"_a,
+           "b"_a,
+           "Evaluate the PSD at a temperature [K] and scattering species properties.")
+      .def(
+          "evaluate_with_derivatives",
+          &scattering::MonodispersePSD::evaluate_with_derivatives,
+          "temperature"_a,
+          "ssprops"_a,
+          "particle_sizes"_a,
+          "a"_a,
+          "b"_a,
+          "Evaluate the PSD and its derivatives by the scattering species properties at a temperature [K] and scattering species properties.")
       .doc() = "A monodisperse population scaled by an atmospheric number-density field.";
 
   py::enum_<scattering::MGDTwoMomentType>(m, "MGDTwoMomentType")
@@ -78,10 +92,23 @@ void py_psd(py::module_& m) try {
            "t_min"_a,
            "t_max"_a,
            "picky"_a)
-      .def("evaluate", &scattering::MGDSingleMoment::evaluate, "Evaluate PSD at given point.")
-      .def("evaluate_with_derivatives",
-           &scattering::MGDSingleMoment::evaluate_with_derivatives,
-           "Evaluate the PSD and its derivatives at the given point.")
+      .def("evaluate",
+           &scattering::MGDSingleMoment::evaluate,
+           "temperature"_a,
+           "ssprops"_a,
+           "particle_sizes"_a,
+           "a"_a,
+           "b"_a,
+           "Evaluate the PSD at a temperature [K] and scattering species properties.")
+      .def(
+          "evaluate_with_derivatives",
+          &scattering::MGDSingleMoment::evaluate_with_derivatives,
+          "temperature"_a,
+          "ssprops"_a,
+          "particle_sizes"_a,
+          "a"_a,
+          "b"_a,
+          "Evaluate the PSD and its derivatives by the scattering species properties at a temperature [K] and scattering species properties.")
       .doc() = "Modified gamma PSD single moment";
 
   py::class_<scattering::MGDMass>(m, "MGDMass")
@@ -94,10 +121,23 @@ void py_psd(py::module_& m) try {
            "t_min"_a,
            "t_max"_a,
            "picky"_a = false)
-      .def("evaluate", &scattering::MGDMass::evaluate, "Evaluate PSD at given point.")
-      .def("evaluate_with_derivatives",
-           &scattering::MGDMass::evaluate_with_derivatives,
-           "Evaluate the PSD and its derivatives at the given point.")
+      .def("evaluate",
+           &scattering::MGDMass::evaluate,
+           "temperature"_a,
+           "ssprops"_a,
+           "particle_sizes"_a,
+           "a"_a,
+           "b"_a,
+           "Evaluate the PSD at a temperature [K] and scattering species properties.")
+      .def(
+          "evaluate_with_derivatives",
+          &scattering::MGDMass::evaluate_with_derivatives,
+          "temperature"_a,
+          "ssprops"_a,
+          "particle_sizes"_a,
+          "a"_a,
+          "b"_a,
+          "Evaluate the PSD and its derivatives by the scattering species properties at a temperature [K] and scattering species properties.")
       .doc() = "Modified-gamma PSD constrained by mass density; exactly one of ``n0`` and ``lambda_`` must be NaN.";
 
   py::class_<scattering::MGDTwoMoment>(m, "MGDTwoMoment")
@@ -117,10 +157,23 @@ void py_psd(py::module_& m) try {
            "t_min"_a,
            "t_max"_a,
            "picky"_a = false)
-      .def("evaluate", &scattering::MGDTwoMoment::evaluate, "Evaluate PSD at given point.")
-      .def("evaluate_with_derivatives",
-           &scattering::MGDTwoMoment::evaluate_with_derivatives,
-           "Evaluate the PSD and its derivatives at the given point.")
+      .def("evaluate",
+           &scattering::MGDTwoMoment::evaluate,
+           "temperature"_a,
+           "ssprops"_a,
+           "particle_sizes"_a,
+           "a"_a,
+           "b"_a,
+           "Evaluate the PSD at a temperature [K] and scattering species properties.")
+      .def(
+          "evaluate_with_derivatives",
+          &scattering::MGDTwoMoment::evaluate_with_derivatives,
+          "temperature"_a,
+          "ssprops"_a,
+          "particle_sizes"_a,
+          "a"_a,
+          "b"_a,
+          "Evaluate the PSD and its derivatives by the scattering species properties at a temperature [K] and scattering species properties.")
       .doc() = "Modified-gamma PSD constrained by mass density and a second moment.";
 
   py::class_<scattering::DelanoeEtAl14>(m, "DelanoeEtAl14")
@@ -153,10 +206,23 @@ void py_psd(py::module_& m) try {
            "t_max"_a  = 400.0,
            "dm_min"_a = -1.0,
            "picky"_a  = false)
-      .def("evaluate", &scattering::DelanoeEtAl14::evaluate, "Evaluate PSD at given point.")
-      .def("evaluate_with_derivatives",
-           &scattering::DelanoeEtAl14::evaluate_with_derivatives,
-           "Evaluate the PSD and its derivatives at the given point.")
+      .def("evaluate",
+           &scattering::DelanoeEtAl14::evaluate,
+           "temperature"_a,
+           "ssprops"_a,
+           "particle_sizes"_a,
+           "a"_a,
+           "b"_a,
+           "Evaluate the PSD at a temperature [K] and scattering species properties.")
+      .def(
+          "evaluate_with_derivatives",
+          &scattering::DelanoeEtAl14::evaluate_with_derivatives,
+          "temperature"_a,
+          "ssprops"_a,
+          "particle_sizes"_a,
+          "a"_a,
+          "b"_a,
+          "Evaluate the PSD and its derivatives by the scattering species properties at a temperature [K] and scattering species properties.")
       .doc() = "Delanoe et al. (2014) normalized ice PSD.";
 
   py::class_<scattering::FieldEtAl07>(m, "FieldEtAl07")
@@ -168,10 +234,23 @@ void py_psd(py::module_& m) try {
            "t_min_psd"_a = 200.0,
            "t_max_psd"_a = 273.15,
            "picky"_a     = false)
-      .def("evaluate", &scattering::FieldEtAl07::evaluate, "Evaluate PSD at given point.")
-      .def("evaluate_with_derivatives",
-           &scattering::FieldEtAl07::evaluate_with_derivatives,
-           "Evaluate the PSD and its derivatives at the given point.")
+      .def("evaluate",
+           &scattering::FieldEtAl07::evaluate,
+           "temperature"_a,
+           "ssprops"_a,
+           "particle_sizes"_a,
+           "a"_a,
+           "b"_a,
+           "Evaluate the PSD at a temperature [K] and scattering species properties.")
+      .def(
+          "evaluate_with_derivatives",
+          &scattering::FieldEtAl07::evaluate_with_derivatives,
+          "temperature"_a,
+          "ssprops"_a,
+          "particle_sizes"_a,
+          "a"_a,
+          "b"_a,
+          "Evaluate the PSD and its derivatives by the scattering species properties at a temperature [K] and scattering species properties.")
       .doc() = "Field et al. (2007) tropical or midlatitude ice PSD.";
 
   py::class_<scattering::McFarquharHeymsfield97>(m, "McFarquharHeymsfield97")
@@ -182,10 +261,23 @@ void py_psd(py::module_& m) try {
            "t_min_psd"_a = 180.0,
            "t_max_psd"_a = 273.15,
            "picky"_a     = false)
-      .def("evaluate", &scattering::McFarquharHeymsfield97::evaluate, "Evaluate PSD at given point.")
-      .def("evaluate_with_derivatives",
-           &scattering::McFarquharHeymsfield97::evaluate_with_derivatives,
-           "Evaluate the PSD and its derivatives at the given point.")
+      .def("evaluate",
+           &scattering::McFarquharHeymsfield97::evaluate,
+           "temperature"_a,
+           "ssprops"_a,
+           "particle_sizes"_a,
+           "a"_a,
+           "b"_a,
+           "Evaluate the PSD at a temperature [K] and scattering species properties.")
+      .def(
+          "evaluate_with_derivatives",
+          &scattering::McFarquharHeymsfield97::evaluate_with_derivatives,
+          "temperature"_a,
+          "ssprops"_a,
+          "particle_sizes"_a,
+          "a"_a,
+          "b"_a,
+          "Evaluate the PSD and its derivatives by the scattering species properties at a temperature [K] and scattering species properties.")
       .doc() = "McFarquhar and Heymsfield (1997) cloud-ice PSD.";
 
   //
@@ -199,10 +291,23 @@ void py_psd(py::module_& m) try {
            "counts"_a,
            "t_min"_a,
            "t_max"_a)
-      .def("evaluate", &scattering::BinnedPSD::evaluate, "Evaluate PSD at given point.")
-      .def("evaluate_with_derivatives",
-           &scattering::BinnedPSD::evaluate_with_derivatives,
-           "Evaluate the PSD and its derivatives at the given point.")
+      .def("evaluate",
+           &scattering::BinnedPSD::evaluate,
+           "temperature"_a,
+           "ssprops"_a,
+           "particle_sizes"_a,
+           "a"_a,
+           "b"_a,
+           "Evaluate the PSD at a temperature [K] and scattering species properties.")
+      .def(
+          "evaluate_with_derivatives",
+          &scattering::BinnedPSD::evaluate_with_derivatives,
+          "temperature"_a,
+          "ssprops"_a,
+          "particle_sizes"_a,
+          "a"_a,
+          "b"_a,
+          "Evaluate the PSD and its derivatives by the scattering species properties at a temperature [K] and scattering species properties.")
       .doc() =
       "Binned PSD returning a fixed particle concentration defined over a sequence of size bins with particle number zeros outside of size bins and temperature range.";
 

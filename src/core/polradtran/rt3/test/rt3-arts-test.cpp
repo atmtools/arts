@@ -78,7 +78,7 @@ void test_rayleigh() {
   const std::array<CompactPlanarMuelmat, 3> ref{
       {{1.0, -0.5, 1.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 1.5, 0.0, 1.5}, {0.5, 0.5, 0.5, 0.0, 0.0, 0.0}}};
   for (const Index degree : {2, 6}) {
-    const auto s = rt3::scattering_optics(species, atm, 89e9, degree, 1e-12);
+    const auto s = rt3::scattering_optics(species, atm, AtmSpectralPoint{}, 89e9, degree, 1e-12);
     require(s.legendre.size() == static_cast<Size>(degree + 1), "B1: legendre size");
     Numeric d = 0.0;
     for (Index l = 0; l <= degree; l++)
@@ -98,12 +98,13 @@ void test_rayleigh() {
                          dk));
   }
 
-  const auto z     = rt3::scattering_optics(ArrayOfScatteringSpecies{}, atm, 89e9, 4, 1e-3);
+  const auto z     = rt3::scattering_optics(ArrayOfScatteringSpecies{}, atm, AtmSpectralPoint{}, 89e9, 4, 1e-3);
   Index      zeros = 0;
   for (const auto& c : z.legendre) zeros += stdr::count(c.data, 0.0);
   require(z.extinction == 0.0 and z.scattering == 0.0 and z.legendre[0].F11() == 1.0 and zeros == 5 * 6 - 1,
           "B1: an empty species array must give no scattering and the isotropic series");
-  require_error([&] { (void)rt3::scattering_optics(species, atm, 89e9, -1, 1e-3); }, "negative degree");
+  require_error([&] { (void)rt3::scattering_optics(species, atm, AtmSpectralPoint{}, 89e9, -1, 1e-3); },
+                "negative degree");
 }
 
 //! Table 3 of Evans and Stephens (1991): P1 = F11, P2 = F12, P3 = F33, P4 = F34
@@ -188,7 +189,7 @@ void test_mietest() {
     atm[prop] = 0.5 * (rmax - rmin) * w[i] * std::exp(log_n(r));
   }
 
-  const auto s = rt3::scattering_optics(species, atm, frequency, degree, 1e-10);
+  const auto s = rt3::scattering_optics(species, atm, AtmSpectralPoint{}, frequency, degree, 1e-10);
 
   Numeric same = 0.0, f34_same = 0.0, f34_opposite = 0.0, spheres = 0.0, tail = 0.0;
   for (Index l = 0; l <= degree; l++) {
@@ -246,23 +247,31 @@ path_data make_path(const Vector& altitude, const Vector& temperature, const Vec
 }
 
 /* B3: Rayleigh scattering plus a Henyey-Greenstein scatterer (g = 0.5)
-   whose extinction and albedo are atmospheric fields, so that the mix, and
+   whose extinction and albedo are spectral atmospheric fields, so that the mix, and
    with it the normalised series, changes from level to level and the layer
    series is a non-trivial scattering-weighted mean. */
 void test_path() {
-  auto       species = rayleigh_species();
-  const auto hg_ext  = ScatteringSpeciesProperty{"hg", ParticulateProperty::Extinction};
-  const auto hg_ssa  = ScatteringSpeciesProperty{"hg", ParticulateProperty::SingleScatteringAlbedo};
-  species.add(HenyeyGreensteinScatterer{hg_ext, hg_ssa, 0.5});
+  auto species = rayleigh_species();
+  species.add(HenyeyGreensteinScatterer{"extinction", "ssa", "g"});
   auto d = make_path(Vector{2000.0, 1000.0, 0.0}, Vector{240.0, 260.0, 280.0}, Vector{6e4, 8e4, 1e5});
-  for (Index l = 0; l < 3; l++) {
-    d.atm_path[l][hg_ext] = 1e-5 * static_cast<Numeric>(l * l);
-    d.atm_path[l][hg_ssa] = 0.9 - 0.2 * static_cast<Numeric>(l);
-  }
+
+  // Level l is at the altitude 2000 - 1000 l [m]
+  const auto       level = [](Numeric alt) { return (2000.0 - alt) / 1000.0; };
+  AtmSpectralField spectral;
+  spectral[AtmSpectralPropertyTag{"extinction"}] = NumericQuaternaryOperator{
+      [level](Numeric, Numeric alt, Numeric, Numeric) { return 1e-5 * level(alt) * level(alt); }};
+  spectral[AtmSpectralPropertyTag{"ssa"}] =
+      NumericQuaternaryOperator{[level](Numeric, Numeric alt, Numeric, Numeric) { return 0.9 - 0.2 * level(alt); }};
+  spectral[AtmSpectralPropertyTag{"g"}] = 0.5;
+  const auto spectral_point             = [&](Index l) {
+    const Vector3& pos = d.ray_path[l].pos;
+    return spectral.at(d.freq_grid, pos[0], pos[1], pos[2]);
+  };
 
   const rt3::path_settings s{.nstokes = 4, .nmu = 6, .quad = polradtran::quadrature_type::double_gauss};
   const auto               p      = rt3::problem_from_path(d.ray_path,
                                                            d.atm_path,
+                                                           spectral,
                                                            d.propmat,
                                                            d.freq_grid,
                                                            0,
@@ -287,8 +296,8 @@ void test_path() {
 
   Numeric mix = 0.0;
   for (Index l = 0; l < 2; l++) {
-    const auto a = rt3::scattering_optics(species, d.atm_path[l], 89e9, degree, 1e-3);
-    const auto b = rt3::scattering_optics(species, d.atm_path[l + 1], 89e9, degree, 1e-3);
+    const auto a = rt3::scattering_optics(species, d.atm_path[l], spectral_point(l), 89e9, degree, 1e-3);
+    const auto b = rt3::scattering_optics(species, d.atm_path[l + 1], spectral_point(l + 1), 89e9, degree, 1e-3);
     if (l == 0) mix = std::max(mix, std::abs(a.legendre[1].F11() - b.legendre[1].F11()));
     const auto& t = p.scattering_sets[l];
     dev           = std::max({dev,
@@ -305,16 +314,34 @@ void test_path() {
 
   // With delta_m and gauss the automatic degree reaches 2 nmu_total
   const rt3::path_settings sd{.nmu = 6, .quad = polradtran::quadrature_type::gauss, .delta_m = true};
-  const auto               pd = rt3::problem_from_path(
-      d.ray_path, d.atm_path, d.propmat, d.freq_grid, 0, species, sd, polradtran::lambertian_surface{}, 285.0, 3.0);
+  const auto               pd = rt3::problem_from_path(d.ray_path,
+                                                       d.atm_path,
+                                                       spectral,
+                                                       d.propmat,
+                                                       d.freq_grid,
+                                                       0,
+                                                       species,
+                                                       sd,
+                                                       polradtran::lambertian_surface{},
+                                                       285.0,
+                                                       3.0);
   require(
       pd.scattering_sets[0].legendre.size() ==
           static_cast<Size>(std::max(rt3::max_legendre_degree(6, polradtran::quadrature_type::gauss), Index{12}) + 1),
       "B3: delta-M degree");
 
   const auto build = [&](const path_data& x) {
-    (void)rt3::problem_from_path(
-        x.ray_path, x.atm_path, x.propmat, x.freq_grid, 0, species, s, polradtran::lambertian_surface{}, 285.0, 3.0);
+    (void)rt3::problem_from_path(x.ray_path,
+                                 x.atm_path,
+                                 spectral,
+                                 x.propmat,
+                                 x.freq_grid,
+                                 0,
+                                 species,
+                                 s,
+                                 polradtran::lambertian_surface{},
+                                 285.0,
+                                 3.0);
   };
   auto e              = d;
   e.propmat[1][0].B() = 1e-6;
@@ -325,8 +352,8 @@ void test_path() {
 
   // A species whose phase-function integral is 3/4 of its scattering coefficient
   ArrayOfScatteringSpecies mismatched;
-  mismatched.add(
-      ScatteringGeneralSpectralTRO{ScatteringGeneralSpectralTROFunc{[](const AtmPoint&, const Vector& f, Index degree) {
+  mismatched.add(ScatteringGeneralSpectralTRO{ScatteringGeneralSpectralTROFunc{
+      [](const scattering::MediumPoint&, const scattering::SpectralMediumPoint&, const Vector& f, Index degree) {
         ScatteringTroSpectralVector v{
             .phase_matrix      = CompactPlanarMuelmatMatrix(f.size(), degree + 1, CompactPlanarMuelmat{}),
             .extinction_matrix = CompactPlanarPropmatVector(f.size(), CompactPlanarPropmat{1e-4}),
@@ -334,7 +361,7 @@ void test_path() {
         for (Size i = 0; i < f.size(); i++) (*v.phase_matrix)[i, 0].F11() = 0.75e-4 / std::sqrt(4.0 * Constant::pi);
         return v;
       }}});
-  require_error([&] { (void)rt3::scattering_optics(mismatched, d.atm_path[0], 89e9, 0, 1e-6); },
+  require_error([&] { (void)rt3::scattering_optics(mismatched, d.atm_path[0], AtmSpectralPoint{}, 89e9, 0, 1e-6); },
                 "a phase-function integral that misses the scattering coefficient");
   arts::println("B3 path builder: path data and layer means to {:.1e}, delta-M degree, 3 error paths", dev);
 }

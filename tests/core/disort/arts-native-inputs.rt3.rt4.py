@@ -47,7 +47,7 @@ atm = air(8e4, 260.0)
 sigma = CROSS_SECTION * A.physics.number_density(atm.pressure, atm.temperature)
 
 # RT3: the Legendre series of Rayleigh scattering, (F11, F12, F22, F33, F34, F44)
-s = A.rt3.scattering_optics(species, atm, FREQ, 2, 1e-12)
+s = A.rt3.scattering_optics(species, atm, A.AtmSpectralPoint(), FREQ, 2, 1e-12)
 ref = np.array(
     [
         [1.0, -0.5, 1.0, 0.0, 0.0, 0.0],
@@ -62,13 +62,13 @@ assert (
 )
 
 # RT4: the azimuthal mean of the laboratory-frame phase matrix on the streams, the same in all hemispheres
-o = A.rt4.scattering_optics(species, atm, FREQ, MU, 2)
+o = A.rt4.scattering_optics(species, atm, A.AtmSpectralPoint(), FREQ, MU, 2)
 dev = np.abs(np.asarray(o.phase) * 4 * np.pi / sigma - RAYLEIGH_M0).max()
 assert dev < 1e-13, dev
 
 # VDISORT: the m = 0 cosine coefficients on signed streams
 signed = np.concatenate((MU, -MU))
-f = A.vdisort.scattering_optics(species, atm, FREQ, signed, signed, 2, 1e-12)
+f = A.vdisort.scattering_optics(species, atm, A.AtmSpectralPoint(), FREQ, signed, signed, 2, 1e-12)
 c0 = np.asarray(f.cosine)[0]
 dev = np.abs(c0[..., :2, :2] - np.tile(RAYLEIGH_M0, (2, 2, 1, 1))).max()
 assert dev < 1e-13, dev

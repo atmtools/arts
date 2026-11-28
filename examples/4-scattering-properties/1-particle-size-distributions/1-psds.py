@@ -35,7 +35,7 @@ point["t"] = 280
 point[rain_first_moment] = 1e-3
 
 sizes = np.logspace(-6, -3, 101)
-pnd = psd.evaluate(point, sizes, 1.0, 1.0)
+pnd = psd.evaluate(point.temperature, point.ssprops, sizes, 1.0, 1.0)
 
 # %% Plot
 fig, ax = plt.subplots()
@@ -51,7 +51,7 @@ bins = [1e-5, 1e-4, 1e-3]
 counts = [1e6, 1e3]
 psd = BinnedPSD(SizeParameter("DVeq"), bins, counts, 273.15, 300)
 sizes = np.logspace(-6, -3, 101)
-pnd = psd.evaluate(point, sizes, 1.0, 1.0)
+pnd = psd.evaluate(point.temperature, point.ssprops, sizes, 1.0, 1.0)
 
 # %% Plot
 fig, ax = plt.subplots()

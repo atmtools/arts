@@ -318,6 +318,33 @@ dielectric factor, and :math:`\beta` is the native return.
   });
 
   opts.emplace_back(EnumeratedOption{
+      .name = "subsurf_settings_agenda_setup_deep_type",
+      .desc =
+          R"(For the deepest level of the subsurface with *subsurf_vdisort_settings_agendaSetup*.
+)",
+      .values_and_desc = {Value{"None", "No radiation from below the deepest level"},
+                          Value{"Thermal", "Blackbody radiation at the temperature of the deepest level"}},
+  });
+
+  opts.emplace_back(EnumeratedOption{
+      .name = "subsurf_settings_agenda_setup_interface_type",
+      .desc =
+          R"(For the interface between the subsurface and the space above with *subsurf_vdisort_settings_agendaSetup*.
+)",
+      .values_and_desc = {Value{"None", "The interface reflects nothing back into the subsurface"},
+                          Value{"Fresnel", "Fresnel reflection back into the subsurface at the interface"}},
+  });
+
+  opts.emplace_back(EnumeratedOption{
+      .name = "subsurf_settings_agenda_setup_sky_type",
+      .desc =
+          R"(For the sky seen from within the subsurface with *subsurf_vdisort_settings_agendaSetup*.
+)",
+      .values_and_desc = {Value{"None", "No radiation enters from above the interface"},
+                          Value{"Isotropic", "Isotropic blackbody radiation of the sky enters through the interface"}},
+  });
+
+  opts.emplace_back(EnumeratedOption{
       .name = "SensorKeyType",
       .desc =
           R"(A key for identifying a sensor property

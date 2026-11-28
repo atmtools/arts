@@ -33,7 +33,20 @@
      against the addition theorem: the Legendre coefficients of p are
      (2 l + 1) / (4 pi) g^l, so the azimuthal modes of Z11 are
      sigma (2 - delta_m0) sum_l g^l Pn_l^m(mu_o) Pn_l^m(mu_i), with Pn the
-     orthonormal associated Legendre functions, summed until g^l < 1e-17. */
+     orthonormal associated Legendre functions, summed until g^l < 1e-17.
+   - V7: vdisort::legendre_fourier_optics, which makes VDISORT's phase
+     matrices from the Legendre moments of the six scattering-plane
+     elements, against the Fourier coefficients of the vector-geometry phase
+     matrix of lab-frame.h: the Mie series of V3 (all six elements, a
+     polynomial matrix, so regular at 0 and 180 deg), diffuse, beam and polar
+     directions; Rayleigh scattering with more Fourier modes than degrees;
+     the first 8 moments of the Mie series; and 8 moments of the polarized
+     Henyey-Greenstein matrix at the stream and refracted directions of the
+     lunar case, 1e-4 deg from forward and from backward scattering.  A
+     truncated series of each element is not regular at 0 and 180 deg; the
+     reference there is the matrix's expansion in generalized spherical
+     functions to the same degree (Lin et al. 2022, Eqs. 62-67), from the
+     untruncated matrix and Wigner's explicit sum for d^l_mn. */
 #include <arts_constants.h>
 #include <arts_conversions.h>
 #include <legendre.h>
@@ -184,7 +197,7 @@ void test_rayleigh() {
   mu_in[mu.size()] = -0.6;  // a beam
 
   {
-    const auto f = vdisort::scattering_optics(species, atm, 50e9, mu, mu_in, 4, 1e-12);
+    const auto f = vdisort::scattering_optics(species, atm, AtmSpectralPoint{}, 50e9, mu, mu_in, 4, 1e-12);
     require(std::abs(f.extinction - sigma) < 1e-14 * sigma and std::abs(f.scattering - sigma) < 1e-14 * sigma,
             "V1: Rayleigh extinction and scattering must be sigma");
     Numeric d = 0.0;
@@ -208,9 +221,13 @@ void test_rayleigh() {
                          d));
   }
 
-  require_error([&] { (void)vdisort::scattering_optics(species, atm, 50e9, Vector{0.0}, mu, 2, 1e-3); }, "mu = 0");
-  require_error([&] { (void)vdisort::scattering_optics(species, atm, 50e9, mu, mu, 0, 1e-3); }, "nfourier 0");
-  const auto none = vdisort::scattering_optics(ArrayOfScatteringSpecies{}, atm, 50e9, mu, mu, 2, 1e-3);
+  require_error(
+      [&] { (void)vdisort::scattering_optics(species, atm, AtmSpectralPoint{}, 50e9, Vector{0.0}, mu, 2, 1e-3); },
+      "mu = 0");
+  require_error([&] { (void)vdisort::scattering_optics(species, atm, AtmSpectralPoint{}, 50e9, mu, mu, 0, 1e-3); },
+                "nfourier 0");
+  const auto none =
+      vdisort::scattering_optics(ArrayOfScatteringSpecies{}, atm, AtmSpectralPoint{}, 50e9, mu, mu, 2, 1e-3);
   require(none.extinction == 0.0 and
               stdr::all_of(none.cosine | by_elem,
                            [](const auto& z) { return stdr::all_of(z | by_elem, [](Numeric x) { return x == 0.0; }); }),
@@ -287,8 +304,9 @@ vdisort_test::tro_matrix series_of(const mie_case& c) {
 
 //! ARTS's laboratory-frame Z for the incident propagation zenith za_in, za_out and aa_out - aa_in [deg]
 rtepack::muelmat arts_lab_frame(const mie_case& c, Numeric za_in, Numeric delta_aa, Numeric za_out) {
-  const auto bulk = c.species.get_bulk_scattering_properties_aro_gridded(
+  const auto bulk = c.species.aro_gridded(
       c.atm,
+      AtmSpectralPoint{},
       Vector{mie_frequency},
       Vector{za_in},
       Vector{delta_aa},
@@ -299,8 +317,9 @@ rtepack::muelmat arts_lab_frame(const mie_case& c, Numeric za_in, Numeric delta_
 //! The scattering matrix of the species at cos(Theta), via its TRO data at that exact angle
 vdisort_test::tro_matrix tro_of(const mie_case& c, Numeric sign34 = 1.0) {
   return [&c, sign34](Numeric cos_theta) {
-    const auto bulk = c.species.get_bulk_scattering_properties_tro_gridded(
+    const auto bulk = c.species.tro_gridded(
         c.atm,
+        AtmSpectralPoint{},
         Vector{mie_frequency},
         std::make_shared<scattering::ZenithAngleGrid>(
             scattering::IrregularZenithAngleGrid(Vector{Conversion::rad2deg(std::acos(cos_theta))})));
@@ -400,7 +419,8 @@ void test_fourier_against_vector_geometry(const mie_case& c) {
   mu_in[8]           = -0.6;
 
   constexpr Index NF = 4, N = 512;
-  const auto      f = vdisort::scattering_optics(c.spectral_species, c.atm, mie_frequency, mu, mu_in, NF, 1e-9);
+  const auto      f =
+      vdisort::scattering_optics(c.spectral_species, c.atm, AtmSpectralPoint{}, mie_frequency, mu, mu_in, NF, 1e-9);
 
   // sigma = 2 pi int F11 dx = sqrt(4 pi) a_0 of the series
   const Numeric sigma = 1e9 * std::sqrt(4 * pi) * c.series[0, 0, 0].F11();
@@ -457,8 +477,17 @@ void test_path() {
   const AscendingGrid freq_grid{Vector{89e9}};
 
   const vdisort::path_settings s{.nquad = 8, .nfourier = 1};
-  const auto                   v = vdisort::main_data_from_path(
-      ray_path, atm_path, propmat, freq_grid, 0, species, s, vdisort::lambertian_surface{.albedo = 0.3}, 290.0, 2.7);
+  const auto                   v = vdisort::main_data_from_path(ray_path,
+                                                                atm_path,
+                                                                AtmSpectralField{},
+                                                                propmat,
+                                                                freq_grid,
+                                                                0,
+                                                                species,
+                                                                s,
+                                                                vdisort::lambertian_surface{.albedo = 0.3},
+                                                                290.0,
+                                                                2.7);
 
   Numeric tau = 0.0, dev = 0.0;
   for (Index l = 0; l < 2; l++) {
@@ -473,6 +502,7 @@ void test_path() {
   // Gas-only layer and an empty species array: no scattering, the thermal source alone
   const auto g = vdisort::main_data_from_path(ray_path,
                                               atm_path,
+                                              AtmSpectralField{},
                                               propmat,
                                               freq_grid,
                                               0,
@@ -487,8 +517,17 @@ void test_path() {
   bad[1][0].V() = 1e-7;
   require_error(
       [&] {
-        (void)vdisort::main_data_from_path(
-            ray_path, atm_path, bad, freq_grid, 0, species, s, vdisort::lambertian_surface{}, 290.0, 2.7);
+        (void)vdisort::main_data_from_path(ray_path,
+                                           atm_path,
+                                           AtmSpectralField{},
+                                           bad,
+                                           freq_grid,
+                                           0,
+                                           species,
+                                           s,
+                                           vdisort::lambertian_surface{},
+                                           290.0,
+                                           2.7);
       },
       "a polarized gas propagation matrix");
   auto zero = propmat;
@@ -497,6 +536,7 @@ void test_path() {
       [&] {
         (void)vdisort::main_data_from_path(ray_path,
                                            atm_path,
+                                           AtmSpectralField{},
                                            zero,
                                            freq_grid,
                                            0,
@@ -540,11 +580,14 @@ void test_forward_peaked_hg() {
 
   for (const Numeric g : {0.9, 0.95, 0.99}) {
     ArrayOfScatteringSpecies species;
-    species.add(HenyeyGreensteinScatterer{
-        ExtSSACallback{[](Numeric, const AtmPoint&) { return std::pair<Numeric, Numeric>{1e-4, 0.9}; }}, g});
+    species.add(HenyeyGreensteinScatterer{"extinction", "ssa", "g"});
+    AtmSpectralPoint spectral;
+    spectral[AtmSpectralPropertyTag{"extinction"}] = Vector{1e-4};
+    spectral[AtmSpectralPropertyTag{"ssa"}]        = Vector{0.9};
+    spectral[AtmSpectralPropertyTag{"g"}]          = Vector{g};
 
     const auto start = std::chrono::steady_clock::now();
-    const auto f     = vdisort::scattering_optics(species, atm, 50e9, mu, mu_in, NF, 1e-10);
+    const auto f     = vdisort::scattering_optics(species, atm, spectral, 50e9, mu, mu_in, NF, 1e-10);
     const auto time  = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
 
     const auto L = static_cast<Index>(std::ceil(std::log(1e-17) / std::log(g)));
@@ -601,12 +644,13 @@ void test_aro_data() {
   const Vector delta = nlinspace(-180.0, 180.0, 361);
 
   const auto aro_species = [&](const Vector& za_scat, Numeric extinction_change) {
-    auto bulk = gas.get_bulk_scattering_properties_aro_gridded(
-        atm,
-        Vector{50e9},
-        streams,
-        delta,
-        std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(za_scat)));
+    auto bulk =
+        gas.aro_gridded(atm,
+                        AtmSpectralPoint{},
+                        Vector{50e9},
+                        streams,
+                        delta,
+                        std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(za_scat)));
     bulk.extinction_matrix[0, 0, 1].A() *= 1.0 + extinction_change;
     const auto& pm                       = *bulk.phase_matrix;
     ARO         ssd(scattering::ParticleProperties{.name = "rayleigh", .mass = 1e-12, .d_veq = 1e-6, .d_max = 1e-6},
@@ -627,8 +671,8 @@ void test_aro_data() {
   };
 
   const auto [species, a] = aro_species(with_streams(0.0, 180.0), 0.0);
-  const auto f            = vdisort::scattering_optics(species, a, 50e9, mu, mu, 2, 1e-3);
-  const auto g            = vdisort::scattering_optics(gas, atm, 50e9, mu, mu, 2, 1e-3);
+  const auto f            = vdisort::scattering_optics(species, a, AtmSpectralPoint{}, 50e9, mu, mu, 2, 1e-3);
+  const auto g            = vdisort::scattering_optics(gas, atm, AtmSpectralPoint{}, 50e9, mu, mu, 2, 1e-3);
   Numeric    d = 0.0, scale = 0.0;
   for (Index m = 0; m < 2; m++) {
     for (Index o = 0; o < 4; o++) {
@@ -649,15 +693,180 @@ void test_aro_data() {
   require_error(
       [&] {
         const auto [s2, a2] = aro_species(with_streams(1.0, 179.0), 0.0);
-        (void)vdisort::scattering_optics(s2, a2, 50e9, mu, mu, 2, 1e-3);
+        (void)vdisort::scattering_optics(s2, a2, AtmSpectralPoint{}, 50e9, mu, mu, 2, 1e-3);
       },
       "ARO data without all scattering zenith angles have no phase integral");
   require_error(
       [&] {
         const auto [s2, a2] = aro_species(with_streams(0.0, 180.0), 0.1);
-        (void)vdisort::scattering_optics(s2, a2, 50e9, mu, mu, 2, 1e-3);
+        (void)vdisort::scattering_optics(s2, a2, AtmSpectralPoint{}, 50e9, mu, mu, 2, 1e-3);
       },
       "an extinction that depends on the direction");
+}
+
+//! Wigner's d^l_mn(theta) by its explicit sum, independently of the recurrences of the code under test
+Numeric wigner_d_sum(Index l, Index m, Index n, Numeric theta) {
+  const auto factorial = [](Index k) {
+    Numeric r = 1.0;
+    for (Index i = 2; i <= k; i++) r *= static_cast<Numeric>(i);
+    return r;
+  };
+  if (std::abs(m) > l or std::abs(n) > l) return 0.0;
+  const Numeric c = std::cos(theta / 2), s = std::sin(theta / 2);
+  Numeric       sum = 0.0;
+  for (Index k = std::max<Index>(0, n - m); k <= std::min(l + n, l - m); k++)
+    sum += ((m - n + k) % 2 == 0 ? 1.0 : -1.0) * std::pow(c, static_cast<Numeric>(2 * l + n - m - 2 * k)) *
+           std::pow(s, static_cast<Numeric>(m - n + 2 * k)) /
+           (factorial(l + n - k) * factorial(k) * factorial(m - n + k) * factorial(l - m - k));
+  return std::sqrt(factorial(l + m) * factorial(l - m) * factorial(l + n) * factorial(l - n)) * sum;
+}
+
+/* The expansion of F in generalized spherical functions to degree L - 1 (Lin et al. 2022, Eqs. 62-67),
+     F11 = sum_l a1_l d^l_00,  F22 + F33 = sum_l (a2 + a3)_l d^l_22,  F22 - F33 = sum_l (a2 - a3)_l d^l_2-2,
+     F44 = sum_l a4_l d^l_00,  F12 = sum_l b1_l d^l_02,  F34 = sum_l b2_l d^l_02,
+   with the coefficients (2 l + 1) / 2 int F d^l dcos(Theta) of the exact F by a 200-node Gauss-Legendre rule */
+vdisort_test::tro_matrix gsf_truncation(const vdisort_test::tro_matrix& F, Index L) {
+  constexpr Index nodes = 200;
+  Vector          x(nodes), w(nodes);
+  Legendre::GaussLegendre(x, w);
+  std::vector<std::array<Numeric, 6>> a(L, std::array<Numeric, 6>{});  // a1, a2 + a3, a2 - a3, a4, b1, b2
+  for (Index k = 0; k < nodes; k++) {
+    const CompactPlanarMuelmat f     = F(x[k]);
+    const Numeric              theta = std::acos(x[k]);
+    for (Index l = 0; l < L; l++) {
+      const Numeric h  = 0.5 * static_cast<Numeric>(2 * l + 1) * w[k];
+      a[l][0]         += h * f.F11() * wigner_d_sum(l, 0, 0, theta);
+      a[l][1]         += h * (f.F22() + f.F33()) * wigner_d_sum(l, 2, 2, theta);
+      a[l][2]         += h * (f.F22() - f.F33()) * wigner_d_sum(l, 2, -2, theta);
+      a[l][3]         += h * f.F44() * wigner_d_sum(l, 0, 0, theta);
+      a[l][4]         += h * f.F12() * wigner_d_sum(l, 0, 2, theta);
+      a[l][5]         += h * f.F34() * wigner_d_sum(l, 0, 2, theta);
+    }
+  }
+  return [a, L](Numeric cos_theta) {
+    const Numeric          theta = std::acos(std::clamp(cos_theta, -1.0, 1.0));
+    std::array<Numeric, 6> s{};
+    for (Index l = 0; l < L; l++) {
+      s[0] += a[l][0] * wigner_d_sum(l, 0, 0, theta);
+      s[1] += a[l][1] * wigner_d_sum(l, 2, 2, theta);
+      s[2] += a[l][2] * wigner_d_sum(l, 2, -2, theta);
+      s[3] += a[l][3] * wigner_d_sum(l, 0, 0, theta);
+      s[4] += a[l][4] * wigner_d_sum(l, 0, 2, theta);
+      s[5] += a[l][5] * wigner_d_sum(l, 0, 2, theta);
+    }
+    return CompactPlanarMuelmat{s[0], s[4], 0.5 * (s[1] + s[2]), 0.5 * (s[1] - s[2]), s[5], s[3]};
+  };
+}
+
+//! The Legendre moments beta_l of F, F = sum_l (2 l + 1) beta_l P_l(cos Theta), l < L, by a 200-node rule
+CompactPlanarMuelmatVector legendre_moments(const vdisort_test::tro_matrix& F, Index L) {
+  constexpr Index nodes = 200;
+  Vector          x(nodes), w(nodes), p(L);
+  Legendre::GaussLegendre(x, w);
+  CompactPlanarMuelmatVector beta(L, CompactPlanarMuelmat{});
+  for (Index k = 0; k < nodes; k++) {
+    Legendre::legendre_polynomials(p, x[k]);
+    const CompactPlanarMuelmat f = F(x[k]);
+    for (Index l = 0; l < L; l++) beta[l] += (0.5 * w[k] * p[l]) * f;
+  }
+  return beta;
+}
+
+//! The largest |dC|, |dS| of vdisort::legendre_fourier_optics against the vector geometry, relative to max |C|
+Numeric legendre_optics_error(const CompactPlanarMuelmatVector& moments,
+                              const vdisort_test::tro_matrix&   reference,
+                              const Vector&                     mu_out,
+                              const Vector&                     mu_in,
+                              Index                             NF) {
+  const auto f = vdisort::legendre_fourier_optics(moments, mu_out, mu_in, NF);
+  // Incidence at phi' and scattering at 0, as in V3; the reference matrices are polynomials of degree below 64 in
+  // cos(Theta), whose modes 512 midpoints give to rounding
+  const auto r = vdisort_test::fourier_modes(reference, mu_out, mu_in, NF, 512, 4, true);
+  Numeric    d = 0.0, scale = 0.0;
+  for (Index m = 0; m < NF; m++) {
+    for (Size o = 0; o < mu_out.size(); o++) {
+      for (Size i = 0; i < mu_in.size(); i++) {
+        scale = std::max(scale, max_abs(r.C[m, o, i]));
+        d     = std::max({d, max_diff(r.C[m, o, i], f.cosine[m, o, i]), max_diff(r.S[m, o, i], f.sine[m, o, i])});
+      }
+    }
+  }
+  return d / scale;
+}
+
+//! V7: vdisort::legendre_fourier_optics against the vector geometry
+void test_legendre_fourier_optics(const mie_case& c) {
+  Vector mu(8), inv(8), w(4);
+  disort_common::initialize_streams(mu, inv, w);
+  Vector mu_out(10), mu_in(11);
+  mu_out[Range(0, 8)] = mu;
+  mu_out[8]           = 1.0;
+  mu_out[9]           = -1.0;
+  mu_in[Range(0, 8)]  = mu;
+  mu_in[8]            = -0.6;
+  mu_in[9]            = 1.0;
+  mu_in[10]           = -1.0;
+
+  // The Mie series of V3 as normalised moments, beta_l = a_l / (sqrt(2 l + 1) a_0,11), and as a matrix
+  const Index                L = mie_degree + 1;
+  CompactPlanarMuelmatVector mie_moments(L);
+  CompactPlanarMuelmatVector mie_series(L);
+  for (Index l = 0; l < L; l++) {
+    mie_moments[l]  = c.series[0, 0, l];
+    mie_moments[l] /= std::sqrt(static_cast<Numeric>(2 * l + 1)) * c.series[0, 0, 0].F11();
+    mie_series[l]   = mie_moments[l];
+    mie_series[l]  *= static_cast<Numeric>(2 * l + 1);
+  }
+  const Numeric mie = legendre_optics_error(mie_moments, vdisort_test::legendre_matrix(mie_series), mu_out, mu_in, 4);
+  arts::println(
+      "V7 vdisort::legendre_fourier_optics vs the Fourier coefficients of the vector-geometry phase matrix, max "
+      "|dC|, |dS| / max |C| (tolerance 1e-12):\n"
+      "    Mie series of degree 40, m = 0..3, 8 streams, the beam -0.6 and the poles: {:.1e}",
+      mie);
+
+  // Rayleigh scattering, a polynomial of degree 2: the modes from 3 on vanish
+  const vdisort_test::tro_matrix rayleigh = [](Numeric x) {
+    return CompactPlanarMuelmat{0.75 * (1 + x * x), -0.75 * (1 - x * x), 0.75 * (1 + x * x), 1.5 * x, 0.0, 1.5 * x};
+  };
+  const Numeric ray = legendre_optics_error(legendre_moments(rayleigh, 3), rayleigh, mu_out, mu_in, 5);
+  arts::println("    Rayleigh, 3 moments, m = 0..4:                                             {:.1e}", ray);
+
+  // The first 8 moments of the Mie series: their elements are not regular at 0 and 180 deg
+  CompactPlanarMuelmatVector mie_first(8);
+  for (Index l = 0; l < 8; l++) mie_first[l] = mie_moments[l];
+  const Numeric truncated =
+      legendre_optics_error(mie_first, gsf_truncation(vdisort_test::legendre_matrix(mie_series), 8), mu_out, mu_in, 4);
+  arts::println("    Mie series, its first 8 moments, m = 0..3:                                 {:.1e}", truncated);
+
+  // 8 moments of the polarized Henyey-Greenstein matrix of ARTS (g = 0.3), on the 8 streams and the refracted
+  // direction 158.52368 deg, 1e-4 deg from backward scattering of the stream at 21.47645 deg and from forward
+  // scattering of that at 158.52355 deg
+  constexpr Numeric g = 0.3;
+  const auto hg_bulk  = HenyeyGreensteinScatterer{}.tro_spectral(Vector{1.0}, Vector{1.0}, Vector{g}, Vector{1e11}, 7);
+  CompactPlanarMuelmatVector hg_moments(8);
+  for (Index l = 0; l < 8; l++) {
+    hg_moments[l]  = (*hg_bulk.phase_matrix)[0, l];
+    hg_moments[l] /= std::sqrt(static_cast<Numeric>(2 * l + 1)) * (*hg_bulk.phase_matrix)[0, 0].F11();
+  }
+  const vdisort_test::tro_matrix hg = [](Numeric x) {
+    const Numeric p = (1 - g * g) / std::pow(1 + g * g - 2 * g * x, 1.5), f = 0.5 * x * (3 - x * x);
+    return CompactPlanarMuelmat{p, 0.0, p, p * f, 0.0, p * f};
+  };
+  Vector lunar_out(9);
+  lunar_out[Range(0, 8)] = mu;
+  lunar_out[8]           = std::cos(Conversion::deg2rad(158.52368));
+  const Numeric lunar    = legendre_optics_error(hg_moments, gsf_truncation(hg, 8), lunar_out, mu, 4);
+  arts::println("    Henyey-Greenstein g = 0.3, 8 moments, m = 0..3, 1e-4 deg from 0 and 180 deg: {:.1e}", lunar);
+
+  require(mie <= 1e-12 and ray <= 1e-12 and truncated <= 1e-12 and lunar <= 1e-12,
+          arts::format("V7: VDISORT's phase matrices from Legendre moments must be the Fourier coefficients of the "
+                       "vector-geometry phase matrix of the series' expansion in generalized spherical functions to "
+                       "1e-12, got {:.2e} (Mie), {:.2e} (Rayleigh), {:.2e} (8 Mie moments) and {:.2e} "
+                       "(Henyey-Greenstein)",
+                       mie,
+                       ray,
+                       truncated,
+                       lunar));
 }
 }  // namespace
 
@@ -670,6 +879,7 @@ int main() try {
   test_path();
   test_aro_data();
   test_forward_peaked_hg();
+  test_legendre_fourier_optics(c);
   std::cout << "vdisort-arts test passed\n";
   return 0;
 } catch (const std::exception& e) {

@@ -37,6 +37,21 @@ Vector3 turn(const Vector3& v, const Vector3& k, Numeric angle) {
   return v * c + cross(k, v) * s + k * dot(k, v) * (1.0 - c);
 }
 
+/** A direction of the instrument's frame at the boresight after a roll [deg]
+ *
+ *  The roll turns from v towards h, right-handed about the propagation direction of the received radiation, which
+ *  is opposite to the boresight bore.
+ */
+Vector3 rolled(const Vector3& v, const Vector3& bore, Numeric roll) { return turn(v, bore, -roll); }
+
+//! The responses, given in the frame of an instrument rolled by roll [deg], in the basis of its boresight
+std::vector<Stokvec> rolled(std::span<const Stokvec> responses, Numeric roll) {
+  // Turning the receiver by roll from v towards h is the change of basis by -roll, as in Polarization::at
+  const Muelmat basis = rtepack::stokes_rotation(Conversion::cosd(2.0 * roll), -Conversion::sind(2.0 * roll));
+  return std::vector<Stokvec>(std::from_range,
+                              responses | stdv::transform([&basis](const Stokvec& r) { return basis * r; }));
+}
+
 /** The Stokes change of basis from a basis carried along with the antenna to that of the line of sight it sampled
  *
  *  The two propagation directions agree to the rounding of the geodetic conversions, except within the pole
@@ -108,12 +123,18 @@ std::vector<Numeric> azimuth_fractions(const AziGrid& azi) {
   return out;
 }
 
+/** The samples of a pattern on rings of zenith offset, for an instrument rolled by roll [deg]
+ *
+ *  The azimuth offsets turn right-handed about the boresight, so the roll, which turns the other way, subtracts from
+ *  them.
+ */
 [[nodiscard]] std::vector<AntennaGeometrySample> make_antenna_geometry_layout(const Matrix&  gain,
                                                                               const ZenGrid& zen_grid,
                                                                               const AziGrid& azi_grid,
                                                                               const Vector3& pos,
                                                                               const Vector2& bore_los,
-                                                                              const Vector2& ell) {
+                                                                              const Vector2& ell,
+                                                                              Numeric        roll) {
   using Conversion::cosd, Conversion::sind;
 
   if (zen_grid.empty() or azi_grid.empty()) arts::user_error("An antenna pattern needs zenith and azimuth offsets");
@@ -154,12 +175,13 @@ std::vector<Numeric> azimuth_fractions(const AziGrid& azi) {
     const Vector3 tilted_ecef  = geodetic_los2ecef(pos, tilted_los, ell).second;
 
     for (Size iazi = 0; iazi < azi_grid.size(); ++iazi) {
-      const Vector3 sample_ecef = turn(tilted_ecef, los_ecef, azi_grid[iazi]);
+      const Numeric azimuth     = azi_grid[iazi] - roll;
+      const Vector3 sample_ecef = turn(tilted_ecef, los_ecef, azimuth);
       const Vector2 los         = ecef2geodetic_los(pos_ecef, sample_ecef, ell).second;
 
       // The antenna's field is carried along the great circle from the boresight to the sample; the tilt and turn
       // that place the sample would also spin it about the boresight
-      const Vector3 sample = turn(turn(bore, tilt_axis, zen_grid[izen]), bore, azi_grid[iazi]);
+      const Vector3 sample = turn(turn(bore, tilt_axis, zen_grid[izen]), bore, azimuth);
 
       out.push_back({.poslos               = {.pos = pos, .los = los},
                      .gain                 = gain[izen, iazi],
@@ -296,11 +318,13 @@ PixelGrid GaussianAntenna::pixels() const { return {}; }
 PixelGrid GaussianAiryAntenna::pixels() const { return {}; }
 
 Sensor PencilBeamAntenna::operator()(std::span<const Channel> channels,
-                                     std::span<const Stokvec> responses,
+                                     std::span<const Stokvec> instrument_responses,
                                      const Vector3&           pos,
                                      const Vector2&           bore_los,
-                                     const Vector2&) const {
-  auto q = channel_quadratures(channels, responses);
+                                     const Vector2&,
+                                     Numeric roll) const {
+  const auto responses = rolled(instrument_responses, roll);
+  auto       q         = channel_quadratures(channels, responses);
 
   std::vector<SparseStokvecMatrix> elements;
   elements.reserve(channels.size());
@@ -319,15 +343,18 @@ Sensor PencilBeamAntenna::operator()(std::span<const Channel> channels,
 }
 
 Sensor GriddedAntennaPattern::operator()(std::span<const Channel> channels,
-                                         std::span<const Stokvec> responses,
+                                         std::span<const Stokvec> instrument_responses,
                                          const Vector3&           pos,
                                          const Vector2&           bore_los,
-                                         const Vector2&           ell) const {
+                                         const Vector2&           ell,
+                                         Numeric                  roll) const {
   if (not data.ok()) arts::user_error("GriddedAntennaPattern data shape does not match its grids");
 
-  auto q = channel_quadratures(channels, responses);
+  const auto responses = rolled(instrument_responses, roll);
+  auto       q         = channel_quadratures(channels, responses);
 
-  const auto antenna_geom = make_antenna_geometry_layout(data.data, data.grid<0>(), data.grid<1>(), pos, bore_los, ell);
+  const auto antenna_geom =
+      make_antenna_geometry_layout(data.data, data.grid<0>(), data.grid<1>(), pos, bore_los, ell, roll);
 
   Numeric beam_total = 0.0;
   for (const auto& sample : antenna_geom) beam_total += sample.gain * sample.solid_angle;
@@ -379,9 +406,10 @@ Sensor GaussianAntenna::operator()(std::span<const Channel> channels,
                                    std::span<const Stokvec> responses,
                                    const Vector3&           pos,
                                    const Vector2&           bore_los,
-                                   const Vector2&           ell) const {
+                                   const Vector2&           ell,
+                                   Numeric                  roll) const {
   const GriddedAntennaPattern pattern{.data = make_gaussian_field(zen_grid, azi_grid, this->std)};
-  return pattern(channels, responses, pos, bore_los, ell);
+  return pattern(channels, responses, pos, bore_los, ell, roll);
 }
 
 PixelGrid GaussianRectangularAntenna::pixels() const { return {}; }
@@ -403,10 +431,11 @@ Numeric gnomonic_solid_angle(Numeric u, Numeric v) { return std::atan(u * v / st
 }  // namespace
 
 Sensor GaussianRectangularAntenna::operator()(std::span<const Channel> channels,
-                                              std::span<const Stokvec> responses,
+                                              std::span<const Stokvec> instrument_responses,
                                               const Vector3&           pos,
                                               const Vector2&           bore_los,
-                                              const Vector2&) const {
+                                              const Vector2&,
+                                              Numeric roll) const {
   using Conversion::cosd, Conversion::sind, Conversion::tand;
 
   if (this->std <= 0.0) arts::user_error("Gaussian rectangular antenna std must be positive, got {} deg", this->std);
@@ -425,15 +454,16 @@ Sensor GaussianRectangularAntenna::operator()(std::span<const Channel> channels,
           *cells);
   }
 
-  auto q = channel_quadratures(channels, responses);
+  const auto responses = rolled(instrument_responses, roll);
+  auto       q         = channel_quadratures(channels, responses);
 
-  // In the local east-north-up frame: the boresight, the directions of increasing zenith and azimuth there, and
-  // the polarization basis of the radiation it receives
+  // In the local east-north-up frame: the boresight, the instrument's directions of increasing zenith and azimuth,
+  // those at the boresight rolled with it, and the polarization basis of the radiation it receives
   const Numeric za         = bore_los[0];
   const Numeric aa         = bore_los[1];
   const Vector3 bore       = enu_direction(bore_los);
-  const Vector3 e_zen      = {cosd(za) * sind(aa), cosd(za) * cosd(aa), -sind(za)};
-  const Vector3 e_azi      = {cosd(aa), -sind(aa), 0.0};
+  const Vector3 e_zen      = rolled(Vector3{cosd(za) * sind(aa), cosd(za) * cosd(aa), -sind(za)}, bore, roll);
+  const Vector3 e_azi      = rolled(Vector3{cosd(aa), -sind(aa), 0.0}, bore, roll);
   const auto    bore_basis = received_basis(bore_los);
 
   // The line of sight, beam weight and polarization basis of each sample, by zenith offset and then azimuth offset
@@ -500,16 +530,18 @@ GaussianAiryAntenna::GaussianAiryAntenna(ZenGrid zen_grid, Numeric aperture_diam
 Numeric GaussianAiryAntenna::std(Numeric frequency) const { return gaussian_airy_std(frequency, aperture_diameter); }
 
 Sensor GaussianAiryAntenna::operator()(std::span<const Channel> channels,
-                                       std::span<const Stokvec> responses,
+                                       std::span<const Stokvec> instrument_responses,
                                        const Vector3&           pos,
                                        const Vector2&           bore_los,
-                                       const Vector2&           ell) const {
+                                       const Vector2&           ell,
+                                       Numeric                  roll) const {
   if (aperture_diameter <= 0.0) arts::user_error("Gaussian Airy antenna aperture_diameter must be positive");
 
-  auto q = channel_quadratures(channels, responses);
+  const auto responses = rolled(instrument_responses, roll);
+  auto       q         = channel_quadratures(channels, responses);
 
   const auto antenna_geom = make_antenna_geometry_layout(
-      Matrix(zen_grid.size(), azi_grid.size(), 1.0), zen_grid, azi_grid, pos, bore_los, ell);
+      Matrix(zen_grid.size(), azi_grid.size(), 1.0), zen_grid, azi_grid, pos, bore_los, ell, roll);
 
   std::vector<SparseStokvecMatrix> elements;
   elements.reserve(channels.size());
@@ -595,10 +627,11 @@ CameraAntenna CameraAntenna::thin_lens(Size        n_rows,
 PixelGrid CameraAntenna::pixels() const { return grid; }
 
 Sensor CameraAntenna::operator()(std::span<const Channel> channels,
-                                 std::span<const Stokvec> responses,
+                                 std::span<const Stokvec> instrument_responses,
                                  const Vector3&           pos,
                                  const Vector2&           bore_los,
-                                 const Vector2&           ell) const {
+                                 const Vector2&           ell,
+                                 Numeric                  roll) const {
   using Conversion::cosd, Conversion::sind, Conversion::tand;
 
   if (grid.rows.empty() or grid.cols.empty())
@@ -609,14 +642,15 @@ Sensor CameraAntenna::operator()(std::span<const Channel> channels,
       arts::user_error("A camera's pixel offsets must be within 90 degrees of the optical axis, got {:B,}", *offsets);
   }
 
-  // In the local east-north-up frame: the optical axis, the directions of increasing zenith and azimuth there,
-  // and the polarization basis of the radiation it receives
+  // In the local east-north-up frame: the optical axis, the instrument's directions of increasing zenith and azimuth,
+  // those at the optical axis rolled with it, and the polarization basis of the radiation it receives
   const Numeric za         = bore_los[0];
   const Numeric aa         = bore_los[1];
   const Vector3 bore       = enu_direction(bore_los);
-  const Vector3 e_zen      = {cosd(za) * sind(aa), cosd(za) * cosd(aa), -sind(za)};
-  const Vector3 e_azi      = {cosd(aa), -sind(aa), 0.0};
+  const Vector3 e_zen      = rolled(Vector3{cosd(za) * sind(aa), cosd(za) * cosd(aa), -sind(za)}, bore, roll);
+  const Vector3 e_azi      = rolled(Vector3{cosd(aa), -sind(aa), 0.0}, bore, roll);
   const auto    bore_basis = received_basis(bore_los);
+  const auto    responses  = rolled(instrument_responses, roll);
 
   // The beam of each pixel, by row and then column
   std::vector<Sensor> pixels;
@@ -634,7 +668,9 @@ Sensor CameraAntenna::operator()(std::span<const Channel> channels,
       std::vector<Stokvec> pixel_responses(
           std::from_range, responses | stdv::transform([&basis](const Stokvec& r) { return basis * r; }));
 
-      pixels.push_back(std::visit([&](const auto& b) { return b(channels, pixel_responses, pos, los, ell); }, beam));
+      // Each pixel's beam is laid out in the frame of the pixel's line of sight, with or without a roll
+      pixels.push_back(
+          std::visit([&](const auto& b) { return b(channels, pixel_responses, pos, los, ell, 0.0); }, beam));
     }
   }
 
@@ -681,8 +717,10 @@ Sensor antenna_sensor(const AntennaPattern&    antenna,
                       std::span<const Stokvec> responses,
                       const Vector3&           pos,
                       const Vector2&           bore_los,
-                      const Vector2&           ell) {
-  return std::visit([&](const auto& pattern) { return pattern(channels, responses, pos, bore_los, ell); }, antenna);
+                      const Vector2&           ell,
+                      Numeric                  roll) {
+  return std::visit([&](const auto& pattern) { return pattern(channels, responses, pos, bore_los, ell, roll); },
+                    antenna);
 }
 
 Sensor antenna_sensor(const AntennaPattern& antenna,
@@ -690,8 +728,9 @@ Sensor antenna_sensor(const AntennaPattern& antenna,
                       const Stokvec&        response,
                       const Vector3&        pos,
                       const Vector2&        bore_los,
-                      const Vector2&        ell) {
-  return antenna_sensor(antenna, std::span{&channel, 1}, std::span{&response, 1}, pos, bore_los, ell);
+                      const Vector2&        ell,
+                      Numeric               roll) {
+  return antenna_sensor(antenna, std::span{&channel, 1}, std::span{&response, 1}, pos, bore_los, ell, roll);
 }
 
 static_assert(AntennaPatternSelection<GriddedAntennaPattern>);

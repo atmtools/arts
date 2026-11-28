@@ -538,4 +538,5 @@ static_assert(std::same_as<typename SurfaceField::KeyVal, SurfaceKeyVal>,
               "The order of arguments in the template of which Field inherits from is "
               "wrong.  KeyVal must be defined in the same way for this to work.");
 
-static_assert(field<SurfaceField, SurfaceKeyVal, Numeric, Numeric>, "The surface field must satisfy the field concepts");
+static_assert(field<SurfaceField, SurfaceKeyVal, Numeric, Numeric>,
+              "The surface field must satisfy the field concepts");

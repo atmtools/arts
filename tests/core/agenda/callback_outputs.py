@@ -26,10 +26,13 @@ np.testing.assert_array_equal(ws.measurement_vec_fit, [1.0, 2.0])
 
 for name, group in (
     ("atm_field", arts.AtmField),
+    ("atm_spectral_field", arts.AtmSpectralField),
     ("abs_bands", arts.AbsorptionBands),
     ("measurement_sensors", arts.ArrayOfSensor),
     ("surf_field", arts.SurfaceField),
+    ("surf_spectral_field", arts.SurfaceSpectralField),
     ("subsurf_field", arts.SubsurfaceField),
+    ("subsurf_spectral_field", arts.SubsurfaceSpectralField),
     ("jac_targets", arts.JacobianTargets),
 ):
     setattr(ws, name, group())

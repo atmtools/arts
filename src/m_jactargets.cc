@@ -44,15 +44,49 @@ void jac_targetsInit(JacobianTargets& jac_targets) {
   jac_targetsOff(jac_targets);
 }
 
-void jac_targetsFinalize(JacobianTargets&       jac_targets,
-                         const AtmField&        atm_field,
-                         const SurfaceField&    surf_field,
-                         const SubsurfaceField& subsurf_field,
-                         const AbsorptionBands& abs_bands,
-                         const ArrayOfSensor&   measurement_sensors) {
+void jac_targetsFinalize(JacobianTargets&               jac_targets,
+                         const AtmField&                atm_field,
+                         const AtmSpectralField&        atm_spectral_field,
+                         const SurfaceField&            surf_field,
+                         const SurfaceSpectralField&    surf_spectral_field,
+                         const SubsurfaceField&         subsurf_field,
+                         const SubsurfaceSpectralField& subsurf_spectral_field,
+                         const AbsorptionBands&         abs_bands,
+                         const ArrayOfSensor&           measurement_sensors) {
   ARTS_TIME_REPORT
 
-  jac_targets.finalize(atm_field, surf_field, subsurf_field, abs_bands, measurement_sensors);
+  jac_targets.finalize(atm_field,
+                       atm_spectral_field,
+                       surf_field,
+                       surf_spectral_field,
+                       subsurf_field,
+                       subsurf_spectral_field,
+                       abs_bands,
+                       measurement_sensors);
+}
+
+void jac_targetsAddAtmosphereSpectral(JacobianTargets&              jac_targets,
+                                      const AtmSpectralPropertyTag& target,
+                                      const Numeric&                d) {
+  ARTS_TIME_REPORT
+
+  jac_targets.emplace_back(target, d);
+}
+
+void jac_targetsAddSurfaceSpectral(JacobianTargets&                  jac_targets,
+                                   const SurfaceSpectralPropertyTag& target,
+                                   const Numeric&                    d) {
+  ARTS_TIME_REPORT
+
+  jac_targets.emplace_back(target, d);
+}
+
+void jac_targetsAddSubsurfaceSpectral(JacobianTargets&                     jac_targets,
+                                      const SubsurfaceSpectralPropertyTag& target,
+                                      const Numeric&                       d) {
+  ARTS_TIME_REPORT
+
+  jac_targets.emplace_back(target, d);
 }
 
 void jac_targetsAddSubsurface(JacobianTargets&                                                jac_targets,

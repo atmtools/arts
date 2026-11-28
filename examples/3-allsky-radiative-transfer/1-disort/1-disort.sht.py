@@ -73,7 +73,7 @@ rain_first_moment = pyarts.arts.ScatteringSpeciesProperty(
 psd = MGDSingleMoment(rain_first_moment, "Wang16", 270, 300, False)
 rain = ScatteringHabit(rain_habit, psd)
 
-ws.scat_species = [rain]
+ws.atm_scat_species = [rain]
 
 # %% Demonstration
 #
@@ -84,7 +84,7 @@ point = AtmPoint()
 point["t"] = 280
 point[rain_first_moment] = 1e-4
 
-bulk_props = rain.get_bulk_scattering_properties_tro_spectral(point, f_grid, 1)
+bulk_props = rain.tro_spectral(point, pyarts.arts.AtmSpectralPoint(), f_grid, 1)
 
 # %% Grids and Planet
 p_grid = load(prefix + "p_grid.xml")

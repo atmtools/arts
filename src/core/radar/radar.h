@@ -135,8 +135,10 @@ struct Optics {
 /** The optical properties of the first np points of a radar path.
  *
  * The scattering properties are evaluated in the monostatic geometry of
- * every path point.  Derivatives are with regards to the atmospheric targets
- * of jac_targets, the gas model provides all others.
+ * every path point.  Derivatives are with regards to the atmospheric and the
+ * spectral atmospheric targets of jac_targets, the gas model provides all
+ * others.  The derivative by a spectral target at a frequency is that by its
+ * property at that frequency.
  *
  * @param path The propagation path, starting closest to the radar
  * @param np The number of levels to evaluate
@@ -150,6 +152,7 @@ struct Optics {
 [[nodiscard]] Optics optics(const ArrayOfPropagationPathPoint& path,
                             Size                               np,
                             const AtmField&                    atm_field,
+                            const AtmSpectralField&            atm_spectral_field,
                             const AscendingGrid&               freq_grid,
                             const ArrayOfScatteringSpecies&    scattering_species,
                             const JacobianTargets&             jac_targets,

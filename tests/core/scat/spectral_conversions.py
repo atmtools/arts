@@ -5,7 +5,7 @@
 - A habit of gridded data refuses to give a Legendre series, and names the
   conversion; converted, it gives one of the degree asked for.
 - The azimuthal Fourier modes of the laboratory-frame phase matrix
-  (get_bulk_scattering_properties_aro_fourier) evaluate to the gridded
+  (aro_fourier) evaluate to the gridded
   laboratory-frame phase matrix at any azimuth, exactly for Rayleigh
   scattering, whose modes above m = 2 vanish.
 - A user's function of the Legendre series gives the Fourier modes of its
@@ -46,18 +46,18 @@ point.pressure = 1e5
 point[drops] = 100.0
 gridded_habit = A.ScatteringHabit(habit, A.MonodispersePSD(drops), 1.0, 3.0)
 try:
-    gridded_habit.get_bulk_scattering_properties_tro_spectral(point, [FREQ], 8)
+    gridded_habit.tro_spectral(point, A.AtmSpectralPoint(), [FREQ], 8)
     raise AssertionError("gridded habit data must not give a Legendre series")
 except RuntimeError:
     pass
 converted, reports = habit.to_tro_spectral_with_report([T], [FREQ], 32)
-bulk = A.ScatteringHabit(converted, A.MonodispersePSD(drops), 1.0, 3.0).get_bulk_scattering_properties_tro_spectral(
-    point, [FREQ], 8
+bulk = A.ScatteringHabit(converted, A.MonodispersePSD(drops), 1.0, 3.0).tro_spectral(
+    point, A.AtmSpectralPoint(), [FREQ], 8
 )
 assert np.asarray(bulk.phase_matrix).shape[:2] == (1, 9)
 try:
-    A.ScatteringHabit(converted, A.MonodispersePSD(drops), 1.0, 3.0).get_bulk_scattering_properties_tro_spectral(
-        point, [FREQ], 40
+    A.ScatteringHabit(converted, A.MonodispersePSD(drops), 1.0, 3.0).tro_spectral(
+        point, A.AtmSpectralPoint(), [FREQ], 40
     )
     raise AssertionError("a series of degree 32 must not give degree 40")
 except RuntimeError:
@@ -67,8 +67,8 @@ except RuntimeError:
 species = A.ArrayOfScatteringSpecies()
 species.add(A.GasScatterer(A.ConstantGasScattering(1e-30), A.RayleighGasScattering(0.0)))
 za_inc, za_scat, delta = [0.0, 30.0, 150.0], [20.0, 30.0, 160.0, 180.0], [0.0, 45.0, 180.0, 200.0, 359.0]
-modes = species.get_bulk_scattering_properties_aro_fourier(point, [FREQ], za_inc, za_scat, 4)
-lab = species.get_bulk_scattering_properties_aro_gridded(point, [FREQ], za_inc, delta, A.IrregularZenithAngleGrid(za_scat))
+modes = species.aro_fourier(point, A.AtmSpectralPoint(), [FREQ], za_inc, za_scat, 4)
+lab = species.aro_gridded(point, A.AtmSpectralPoint(), [FREQ], za_inc, delta, A.IrregularZenithAngleGrid(za_scat))
 from_modes = np.asarray(modes.phase_matrix.to_gridded(delta))
 reference = np.asarray(lab.phase_matrix)
 assert np.abs(from_modes - reference).max() < 1e-12 * np.abs(reference).max(), np.abs(from_modes - reference).max()
@@ -82,13 +82,13 @@ except RuntimeError:
 # A user's function must give exactly the Legendre series asked for
 rayleigh = A.GasScatterer(A.ConstantGasScattering(1e-30), A.RayleighGasScattering(0.0))
 good, bad = A.ArrayOfScatteringSpecies(), A.ArrayOfScatteringSpecies()
-good.add(A.ScatteringGeneralSpectralTRO(lambda atm, f, l: rayleigh.get_bulk_scattering_properties_tro_spectral(atm, f, l)))
-bad.add(A.ScatteringGeneralSpectralTRO(lambda atm, f, l: rayleigh.get_bulk_scattering_properties_tro_spectral(atm, f, l + 1)))
-user = good.get_bulk_scattering_properties_tro_spectral(point, [FREQ], 4)
-builtin = rayleigh.get_bulk_scattering_properties_tro_spectral(point, [FREQ], 4)
+good.add(A.ScatteringGeneralSpectralTRO(lambda atm, spectral, f, l: rayleigh.tro_spectral(atm, spectral, f, l)))
+bad.add(A.ScatteringGeneralSpectralTRO(lambda atm, spectral, f, l: rayleigh.tro_spectral(atm, spectral, f, l + 1)))
+user = good.tro_spectral(point, A.AtmSpectralPoint(), [FREQ], 4)
+builtin = rayleigh.tro_spectral(point, A.AtmSpectralPoint(), [FREQ], 4)
 assert np.array_equal(np.asarray(user.phase_matrix), np.asarray(builtin.phase_matrix))
 try:
-    bad.get_bulk_scattering_properties_tro_spectral(point, [FREQ], 4)
+    bad.tro_spectral(point, A.AtmSpectralPoint(), [FREQ], 4)
     raise AssertionError("a user function giving the wrong degree must fail")
 except RuntimeError:
     pass
@@ -96,13 +96,13 @@ except RuntimeError:
 # The Fourier modes of a user's function are those of its series to the degree set on the species; the Rayleigh
 # phase matrix is a polynomial of degree 2 in cos(Theta), so its series to degree 2 is the matrix itself
 try:
-    good.get_bulk_scattering_properties_aro_fourier(point, [FREQ], za_inc, za_scat, 4)
+    good.aro_fourier(point, A.AtmSpectralPoint(), [FREQ], za_inc, za_scat, 4)
     raise AssertionError("the Fourier modes of a user function need the degree of its series")
 except RuntimeError:
     pass
 user_species = A.ArrayOfScatteringSpecies()
-user_species.add(A.ScatteringGeneralSpectralTRO(lambda atm, f, l: rayleigh.get_bulk_scattering_properties_tro_spectral(atm, f, l), 2))
-user_modes = user_species.get_bulk_scattering_properties_aro_fourier(point, [FREQ], za_inc, za_scat, 4)
+user_species.add(A.ScatteringGeneralSpectralTRO(lambda atm, spectral, f, l: rayleigh.tro_spectral(atm, spectral, f, l), 2))
+user_modes = user_species.aro_fourier(point, A.AtmSpectralPoint(), [FREQ], za_inc, za_scat, 4)
 reference = np.asarray(modes.phase_matrix)
 difference = np.abs(np.asarray(user_modes.phase_matrix) - reference).max()
 assert difference < 1e-12 * np.abs(reference).max(), difference
@@ -124,7 +124,7 @@ def extinction(temperature):
     p.temperature = temperature
     p.pressure = 1e5
     p[drops] = 1.0
-    return np.asarray(two_species.get_bulk_scattering_properties_tro_spectral(p, [FREQ], 8).extinction_matrix)[0, 0]
+    return np.asarray(two_species.tro_spectral(p, A.AtmSpectralPoint(), [FREQ], 8).extinction_matrix)[0, 0]
 
 
 k250, k300 = extinction(250.0), extinction(300.0)

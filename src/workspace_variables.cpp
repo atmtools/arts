@@ -182,8 +182,17 @@ When Bath is selected, all species are used.  Otherwise, this variable should co
       .type = "ArrayOfSpeciesEnum",
   };
 
-  wsv_data["scat_species"] = {
-      .desc = R"--(The scattering species
+  wsv_data["atm_scat_species"] = {
+      .desc = R"--(The scattering species of the atmosphere
+)--",
+      .type = "ArrayOfScatteringSpecies",
+  };
+
+  wsv_data["subsurf_scat_species"] = {
+      .desc = R"--(The scattering species of the subsurface
+
+They are evaluated at the points of the subsurface and its spectral points,
+see *vdisort_settingsSubsurfaceScatteringSpecies*.
 )--",
       .type = "ArrayOfScatteringSpecies",
   };
@@ -282,6 +291,19 @@ The atmospheric field may, but does not have to, consist of the following:
 For more information, see :doc:`user.atm_field`.
 )--",
       .type = "AtmField",
+  };
+
+  wsv_data["atm_spectral_field"] = {
+      .desc          = R"--(The spectral atmospheric field.
+
+It holds the parameters of the atmosphere that depend on frequency, such as
+the spectral properties of scattering species.  The methods that evaluate
+scattering species take it at each position on the frequencies they use.
+
+See *AtmSpectralField*.
+)--",
+      .type          = "AtmSpectralField",
+      .default_value = "AtmSpectralField()",
   };
 
   wsv_data["atm_path"] = {
@@ -656,6 +678,31 @@ It is a 2D field with *lat*, and *lon* dimensions.
 For more information, see :doc:`user.surf_field`.
 )--",
       .type = "SurfaceField",
+  };
+
+  wsv_data["surf_spectral_field"] = {
+      .desc          = R"--(The spectral surface field.
+
+It holds the parameters of the surface that depend on frequency, for the
+methods that use them.
+
+See *SurfaceSpectralField*.
+)--",
+      .type          = "SurfaceSpectralField",
+      .default_value = "SurfaceSpectralField()",
+  };
+
+  wsv_data["subsurf_spectral_field"] = {
+      .desc          = R"--(The spectral sub-surface field.
+
+It holds the parameters of the subsurface that depend on frequency, for the
+methods that use them.  Its vertical position is the altitude relative to the
+local surface, as for *subsurf_field*.
+
+See *SubsurfaceSpectralField*.
+)--",
+      .type          = "SubsurfaceSpectralField",
+      .default_value = "SubsurfaceSpectralField()",
   };
 
   wsv_data["tessem_neth"] = {

@@ -246,7 +246,7 @@ def test_kirchhoff(reciprocal):
     )
     atm = arts.AtmPoint()
     atm.pressure, atm.temperature = 1e5, t
-    rayleigh = rt4.scattering_optics(species, atm, FREQUENCY, mu, 2)
+    rayleigh = rt4.scattering_optics(species, atm, arts.AtmSpectralPoint(), FREQUENCY, mu, 2)
     phase = sigma / np.asarray(rayleigh.extinction)[0, 0, 0, 0] * np.asarray(rayleigh.phase)
     if not reciprocal:
         phase[..., 1, :] *= (1.0 + 0.3 * mu)[:, None, None]  # [h, h', i_out, i_in, s, s']

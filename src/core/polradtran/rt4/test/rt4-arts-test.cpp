@@ -16,7 +16,7 @@
      cosines, summed until g^l < 1e-17.
    - The path builder must reproduce the path data it is given (heights,
      temperatures, midpoint gas extinction) and the level optics of
-     scattering_optics() averaged per layer. */
+     scattering_optics(, AtmSpectralPoint{}) averaged per layer. */
 #include <arts_constants.h>
 #include <legendre.h>
 #include <physics_funcs.h>
@@ -94,7 +94,7 @@ void test_rayleigh() {
   const Numeric tol = 1e-13 * sigma / (4 * pi);
 
   {
-    const auto o = rt4::scattering_optics(species, atm, 89e9, mu, 2);
+    const auto o = rt4::scattering_optics(species, atm, AtmSpectralPoint{}, 89e9, mu, 2);
     require(o.phase.shape() == (std::array<Index, 6>{2, 2, n, n, 2, 2}) and
                 o.extinction.shape() == (std::array<Index, 4>{2, n, 2, 2}) and
                 o.absorption.shape() == (std::array<Index, 3>{2, n, 2}),
@@ -142,8 +142,8 @@ void test_rayleigh() {
   }
 
   // nstokes 1 is the I element alone
-  const auto o1 = rt4::scattering_optics(species, atm, 89e9, mu, 1);
-  const auto o2 = rt4::scattering_optics(species, atm, 89e9, mu, 2);
+  const auto o1 = rt4::scattering_optics(species, atm, AtmSpectralPoint{}, 89e9, mu, 1);
+  const auto o2 = rt4::scattering_optics(species, atm, AtmSpectralPoint{}, 89e9, mu, 2);
   Numeric    d1 = 0.0;
   for (Index ho = 0; ho < 2; ho++)
     for (Index hi = 0; hi < 2; hi++)
@@ -153,14 +153,16 @@ void test_rayleigh() {
   require(d1 == 0.0, "A1: nstokes 1 must give the I element of nstokes 2");
 
   // No species: zero optics of the right shape
-  const auto z = rt4::scattering_optics(ArrayOfScatteringSpecies{}, atm, 89e9, mu, 2);
+  const auto z = rt4::scattering_optics(ArrayOfScatteringSpecies{}, atm, AtmSpectralPoint{}, 89e9, mu, 2);
   require(z.phase.shape() == (std::array<Index, 6>{2, 2, n, n, 2, 2}) and
               stdr::all_of(z.phase | by_elem, [](Numeric x) { return x == 0.0; }),
           "A1: an empty species array must give zero optics");
 
-  require_error([&] { (void)rt4::scattering_optics(species, atm, 89e9, mu, 3); }, "nstokes 3");
-  require_error([&] { (void)rt4::scattering_optics(species, atm, 89e9, Vector{0.5, 0.0}, 2); }, "mu = 0");
-  require_error([&] { (void)rt4::scattering_optics(species, atm, -1.0, mu, 2); }, "negative frequency");
+  require_error([&] { (void)rt4::scattering_optics(species, atm, AtmSpectralPoint{}, 89e9, mu, 3); }, "nstokes 3");
+  require_error([&] { (void)rt4::scattering_optics(species, atm, AtmSpectralPoint{}, 89e9, Vector{0.5, 0.0}, 2); },
+                "mu = 0");
+  require_error([&] { (void)rt4::scattering_optics(species, atm, AtmSpectralPoint{}, -1.0, mu, 2); },
+                "negative frequency");
 }
 
 //! A3: forward-peaked Henyey-Greenstein against the addition theorem
@@ -175,9 +177,12 @@ void test_forward_peaked_hg() {
 
   for (const Numeric g : {0.9, 0.95, 0.99}) {
     ArrayOfScatteringSpecies species;
-    species.add(HenyeyGreensteinScatterer{
-        ExtSSACallback{[](Numeric, const AtmPoint&) { return std::pair<Numeric, Numeric>{1e-4, 0.9}; }}, g});
-    const auto o = rt4::scattering_optics(species, atm, 89e9, mu, 1);
+    species.add(HenyeyGreensteinScatterer{"extinction", "ssa", "g"});
+    AtmSpectralPoint spectral;
+    spectral[AtmSpectralPropertyTag{"extinction"}] = Vector{1e-4};
+    spectral[AtmSpectralPropertyTag{"ssa"}]        = Vector{0.9};
+    spectral[AtmSpectralPropertyTag{"g"}]          = Vector{g};
+    const auto o                                   = rt4::scattering_optics(species, atm, spectral, 89e9, mu, 1);
 
     const auto L = static_cast<Index>(std::ceil(std::log(1e-17) / std::log(g)));
     Vector     po(L + 1), pi_(L + 1);
@@ -243,6 +248,7 @@ void test_path() {
   const rt4::path_settings s{.nstokes = 2, .nmu = 6, .extra_mu = Vector{1.0}};
   const auto               p = rt4::problem_from_path(d.ray_path,
                                                       d.atm_path,
+                                                      AtmSpectralField{},
                                                       d.propmat,
                                                       d.freq_grid,
                                                       1,
@@ -271,8 +277,8 @@ void test_path() {
   Vector     mu(7);
   std::ranges::copy(q.mu, mu.begin());
   mu[6]        = 1.0;
-  const auto a = rt4::scattering_optics(species, d.atm_path[1], 89e9, mu, 2);
-  const auto b = rt4::scattering_optics(species, d.atm_path[2], 89e9, mu, 2);
+  const auto a = rt4::scattering_optics(species, d.atm_path[1], AtmSpectralPoint{}, 89e9, mu, 2);
+  const auto b = rt4::scattering_optics(species, d.atm_path[2], AtmSpectralPoint{}, 89e9, mu, 2);
   Numeric    m = 0.0, scale = 0.0;
   for (Index x = 0; x < static_cast<Index>(a.phase.size()); x++) {
     const Numeric ref = 0.5 * (a.phase.data_handle()[x] + b.phase.data_handle()[x]);
@@ -291,6 +297,7 @@ void test_path() {
   // Without species every layer is gas-only
   const auto g = rt4::problem_from_path(d.ray_path,
                                         d.atm_path,
+                                        AtmSpectralField{},
                                         d.propmat,
                                         d.freq_grid,
                                         0,
@@ -304,8 +311,17 @@ void test_path() {
           "A2: without scattering species every layer must be gas-only");
 
   const auto build = [&](const path_data& x, Index iv) {
-    (void)rt4::problem_from_path(
-        x.ray_path, x.atm_path, x.propmat, x.freq_grid, iv, species, s, polradtran::lambertian_surface{}, 290.0, 2.7);
+    (void)rt4::problem_from_path(x.ray_path,
+                                 x.atm_path,
+                                 AtmSpectralField{},
+                                 x.propmat,
+                                 x.freq_grid,
+                                 iv,
+                                 species,
+                                 s,
+                                 polradtran::lambertian_surface{},
+                                 290.0,
+                                 2.7);
   };
   auto e = d;
   require_error([&] { build(e, 2); }, "freq_index out of range");

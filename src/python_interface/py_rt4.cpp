@@ -227,13 +227,14 @@ streams, then runs RADTRANO (ported to C++).)",
          &rt4::scattering_optics,
          "scattering_species"_a,
          "atm_point"_a,
+         "atm_spectral_point"_a,
          "frequency"_a,
          "mu"_a,
          "nstokes"_a = 2,
          R"(The particle optics of ARTS scattering species at one atmospheric point on RT4's streams.
 
 Uses the azimuthal mean (the m = 0 Fourier mode) of ARTS's laboratory-frame
-bulk phase matrix at the streams (``get_bulk_scattering_properties_aro_fourier``),
+bulk phase matrix at the streams (``aro_fourier``),
 so azimuthally randomly oriented species work as well as totally randomly
 oriented ones.  RT4's stream ``(down, mu)`` is ARTS's propagation zenith
 angle ``180 - acos(mu)`` deg, ``(up, mu)`` is ``acos(mu)``.
@@ -303,6 +304,7 @@ LayerOptics
          &rt4::problem_from_path,
          "ray_path"_a,
          "atm_path"_a,
+         "atm_spectral_field"_a,
          "spectral_propmat_path"_a,
          "freq_grid"_a,
          "freq_index"_a,

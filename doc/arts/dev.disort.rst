@@ -293,7 +293,31 @@ The settings and radiance types are in
   six scattering-plane elements F11, F12, F22, F33, F34 and F44, normalised
   so that the first moment of F11 is one.  The Fourier coefficients of the
   phase matrices on the streams, and from the beam, are built from them per
-  frequency when the solver is set up.
+  frequency when the solver is set up, by ``vdisort::legendre_fourier_optics``
+  in ``vdisort_arts.h``, in closed form as in Lin et al. (2022, Eqs. 56-67):
+
+  * The moments give the expansion coefficients of the scattering matrix in
+    generalized spherical functions to the same degree, the "Greek
+    constants" :math:`\alpha_1` to :math:`\alpha_4`, :math:`\beta_1` and
+    :math:`\beta_2`.  Those of :math:`F_{11}` and :math:`F_{44}` are the
+    moments times :math:`2l+1`; the others are integrals of the series against
+    the generalized spherical functions, exact with a Gauss-Legendre rule of
+    as many nodes as moments.  As those functions are polynomials of degree
+    :math:`l`, these are the coefficients of the untruncated scattering
+    matrix.
+  * The addition theorem of the generalized spherical functions gives the
+    coefficients, :math:`A^m=\sum_{l\ge m}P^m_l(\mu)\Lambda_lP^m_l(\mu')`,
+    the elements of :math:`A^m` in the I, Q and the U, V blocks the cosine
+    coefficients and the other elements, with the sign of their row in
+    :math:`D=\mathrm{diag}(1,1,-1,-1)`, the sine coefficients.
+  * The functions are Wigner's :math:`d^l_{mn}` of ``Legendre::wigner_d``.
+
+  The expansion is regular at forward and backward scattering, where the
+  truncated series of each element is not, so a truncated series gives the
+  phase matrices of its expansion, not of the series itself.  The
+  vector-geometry test ``cpp.fast.vdisort-arts-test`` (V7) checks them for
+  a Mie series, its first moments, Rayleigh scattering and Henyey-Greenstein
+  moments next to forward and backward scattering.
 * The boundary conditions are in VDISORT's combined Fourier representation.
   An azimuth-independent Stokes vector [I, Q, U, V] is [I, Q, 0, 0] in the
   cosine system and [0, 0, U, V] in the sine system of mode 0.
@@ -322,6 +346,43 @@ The settings and radiance types are in
   beam propagates at the solar azimuth plus 180 degrees.
 * DISORT methods without a VDISORT core counterpart are not mirrored:
   delta-M-plus scaling, the subsurface and coupled calculations, and cDISORT.
+  VDISORT's subsurface calculation has methods of its own, below.
+
+**The subsurface calculation** of ``spectral_radSubsurfaceVDisort``:
+
+* VDISORT reflects only at its surface, so the column is solved upside down
+  (``vdisort_settingsSubsurfaceInit``).  The path descends from the
+  interface, VDISORT's top is the deepest level and VDISORT's surface is the
+  interface, where the Fresnel reflection back into the subsurface is that
+  of the refractive index :math:`1/\mathrm{Re}(n)`.  The sky that enters
+  through the interface is the radiance beneath VDISORT's surface, which
+  VDISORT transmits with one minus the reflectance.  The deepest level's
+  radiation is the downward boundary.
+* Within the subsurface the radiances are divided by :math:`\mathrm{Re}(n)^2`,
+  so that the sources are the Planck radiances themselves and a flat
+  interface transmits them with one minus its reflectance.
+* The settings agenda ``subsurf_vdisort_settings_agenda`` has the steps of
+  ``subsurf_vdisort_settings_agendaSetup``, each but the absorption with a
+  "None" option.  The scattering species step adds the species' extinction
+  at the midpoint of each layer to the absorption of the host; the
+  single-scattering albedo is the species' scattering over the total, and the
+  Legendre moments are the mean of the layer's two points, normalised.
+* The facet at the ray path point has the normal of ``surf_field``.  The
+  radiance within at the refracted angle is VDISORT's at a user angle, with
+  the phase matrices from the streams into that angle made as those between
+  the streams.  The Fresnel transmission and reflection are applied in the
+  facet's basis (p, s), and the sum is rotated into the basis of the
+  outgoing ray.
+* The reflected sky is ``spectral_rad_observer_agenda`` along the direction
+  of specular reflection about the facet normal, which gives the sun's
+  glint.
+
+**Tests:** ``tests/core/disort/vdisort-subsurface.py`` checks the
+subsurface calculation against Kirchhoff's law for isothermal columns with
+and without Henyey-Greenstein scattering, absorption along the refracted
+ray, the steps left out, the depolarization and its derivative, a tilted
+facet along and across the ray, the sun's glint, and that the radiance at
+the refracted angle equals VDISORT's at a stream.
 
 **Tests:** ``tests/core/disort/vdisort-workspace.rt3.py`` checks the layer
 against references derived outside VDISORT:
